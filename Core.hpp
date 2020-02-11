@@ -14,9 +14,17 @@
 class Core {
     public:
         /** 
-         * Initializes curl
+         * Initializes curl and header required for all requests
+         * NOTE: EVERY CALL TO initialize() MUST BE MATCHED WITH A CALL TO cleanup();
          */
         void initialize();
+
+
+        /**
+         * Cleans up curl and header as setup by initialize()
+         * Must match with an initialize() call
+         */
+        void cleanup();
 
         /**
          * Makes initial request to Alpaca
@@ -44,12 +52,6 @@ class Core {
         std::string Secret_Key = "bmvI/gROgrOPzhmRToWB48Odav/fIJl370XKSD/k";
 
         CURL* curl;
-
-        /**
-         * Returns required header to authenticate api requests
-         * Note: must be cleaned up by calling function
-         * @return struct curl_slist* with required keys
-         */
-        struct curl_slist* get_auth_header();
+        struct curl_slist* header;
 };
 

@@ -3,14 +3,10 @@
 using std::cout;
 using std::endl;
 
-void init();
-void close();
-
 int main() {
-
     Core* core = new Core();
 
-    core->get_orders();
+    core->post_order("GOOG", 5);
 
     delete core;
 }
