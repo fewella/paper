@@ -42,10 +42,11 @@ bool Core::test_authenticate() {
 }
 
 
-void Core::get_orders() {
+std::map<std::string, int> Core::get_orders() {
     initialize();
 
     std::string buffer;
+    std::map<std::string, int> orders;
 
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
     curl_easy_setopt(curl, CURLOPT_URL, "https://paper-api.alpaca.markets/v2/orders");
@@ -61,6 +62,8 @@ void Core::get_orders() {
     cout << "buffer: " << buffer << endl;
 
     cleanup();
+
+    return orders;
 }
 
 bool Core::post_order(std::string symbol, size_t n) {
@@ -86,3 +89,19 @@ bool Core::post_order(std::string symbol, size_t n) {
 }
 
 
+void Core::get_market_data() {
+    initialize();
+
+    std::string buffer;
+
+    curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
+    curl_easy_setopt(curl, CURLOPT_URL, "https://api.polygon.io/v1/meta/exchanges");
+    curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, &buffer);
+
+    std::cout << buffer << std::endl;
+
+    cleanup();
+}

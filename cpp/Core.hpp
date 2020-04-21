@@ -35,9 +35,9 @@ class Core {
 
         /**
          * Gets all paper orders
-         * @return 
+         * @return map: string (symbol) -> int (quantity)
          */
-        void get_orders();
+        std::map<std::string, int> get_orders();
 
         /**
          * Places an order
@@ -47,8 +47,13 @@ class Core {
          */
         bool post_order(std::string symbol, size_t n);
 
+        /**
+         * Test get market data...
+         */
+        void get_market_data();
+
     private:
-        std::string API_Key = "PKZVNC08423ETEYMSCUY";
+        std::string API_Key = "AKGR1T2AHY05KJPS12XU";
         std::string Secret_Key = "bmvI/gROgrOPzhmRToWB48Odav/fIJl370XKSD/k";
 
         CURL* curl;
