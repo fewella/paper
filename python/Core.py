@@ -4,6 +4,9 @@ import json
 domain = "https://paper-api.alpaca.markets"
 
 class Core:
+    '''
+    Responsible for all API calls. Orders and all communication should be executed via Core. 
+    '''
 
     def __init__(self):
         self.API_KEY = "PKBZJXADC72D0Z9B1TME"
@@ -38,12 +41,22 @@ class Core:
         print(r.text)
 
 
-    # defaults to sell, market
-    # returns True on success, False on failure
     def place_order(self, symbol, n, side="sell", order_type="market", time_in_force="day", limit_price=-1, stop_price=-1, extended_hours=False):
+        '''
+        Places an order on the market. 
+        Requires symbol (str), n (int)
+        
+        Optional parameters:
+        
+        side: "sell" or "buy" (default "sell")
+        
+        order_type: "market", "limit", "stop", or "stop_limit" (default "market") 
+            "limit" requires limit_price, "stop" requires stop_price, "stop_limit" requries both
+
+        limit_price: int, > 0: 
+        '''
         method = "/v2/orders"
 
-        print("n: " + str(n))
         if n <= 0:
             print("Please provide a valid quantity")
             return False
@@ -105,7 +118,7 @@ class Core:
             return False
         
 
-    def get_assets(self):
+    def get_my_assets(self):
         method = "/v2/positions"
 
         r = requests.get(domain + method, headers=self.__get_auth_header())
@@ -113,8 +126,37 @@ class Core:
         if code == 200:
             print("Retrieval successful")
             data = json.loads(r.text)
-            return data
+            return list(data)
         else:
             print("Retrieval failed with code: " + str(code))
             print(r.text)
             return []
+    
+    
+    def get_assets(self):
+        method = "/v2/assets"
+
+        r = requests.get(domain + method, headers=self.__get_auth_header())
+        code = r.status_code
+        if code == 200:
+            print("Get assets successful")
+            data = json.loads(r.text)
+            return list(data)
+        else:
+            print("Get assets failed with code: " + str(code))
+            print(r.text)
+            return []
+    
+    def test_asset(self, symbol):
+        method = "/v2/assets/"
+
+        r = requests.get(domain + method + symbol, headers=self.__get_auth_header())
+        code = r.status_code
+        if code == 200:
+            return True
+        elif code == 404:
+            return False
+        else:
+            print("????")
+            return False
+

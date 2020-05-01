@@ -4,7 +4,10 @@ import json
 domain = "https://data.alpaca.markets"
 
 class Brain:
-    
+    """
+    This class does anything and everything data and algorithm related.
+    """
+
     def __init__(self):
         self.API_KEY = "PKBZJXADC72D0Z9B1TME"
         self.SECRET_KEY = "2YPuW7wK5UOLZwx3/Nn1NQXWVrjyNhNLVvCh5i87"
@@ -17,17 +20,18 @@ class Brain:
         }
     
     
-    def n_day_moving_average(self, n, symbol):
+    def n_moving_average(self, n, symbol, timeframe="day"):
         """
-        Calculates the n day moving average of a stock
+        Calculates the n-day or n-minute moving average of a stock
 
         Parameters:
-            n: how many days
+            n: how many days: [1, 1000]
             symbol: which stock
+            timeframe: granularity of data: "day" or "minute"
 
         Returns:
             A dict of the open, high, low, and close moving averages (referenced as "o", "h", "l", and "c"). 
-            When in doubt, just use "c"
+            If unsure, close ("c") is most popular
         """
         
         moving_averages = {
@@ -37,7 +41,7 @@ class Brain:
             "c" : 0
         }
         
-        bars = self.get_data("1D", symbol, limit=n)
+        bars = self.get_data(timeframe, symbol, limit=n)
         for bar in bars:
             for t in moving_averages:
                 moving_averages[t] += bar[t]
@@ -45,6 +49,7 @@ class Brain:
             moving_averages[t] /= len(bars)
         
         return moving_averages
+
 
 
     def get_data(self, timeframe, symbol, limit=0, start=None, end=None):
@@ -62,7 +67,7 @@ class Brain:
         r = requests.get(domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
-            return json.loads(r.text)[symbol]
+            return list(json.loads(r.text)[symbol])
         else:
             print("Get data failed with error code " + str(code))
             print(r.text)
