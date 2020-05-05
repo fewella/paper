@@ -6,6 +6,7 @@ from Brain import Brain
 
 class Platform:
     
+    
     def __init__(self):
         self.delta = 1
         self.prospective_buy = self.get_prospective()
@@ -13,6 +14,7 @@ class Platform:
         # Dictionary: symbol->{qty: int, entry_price: float}
         self.holdings = {}
         self.original_buying_power = 500
+        self.buying_power = self.original_buying_power
 
         self.core = Core()
         self.brain = Brain()
@@ -25,8 +27,7 @@ class Platform:
         Platform should only execute these strategies at a very high level.
         '''
         
-        self.startup()
-
+        self.startup() 
         while True:
             # BUY CYCLE:
             for symbol in self.prospective_buy:
@@ -49,24 +50,26 @@ class Platform:
 
             time.sleep(self.delta)
 
+
     def buy_portion(self, symbol, price_per_share):
         # TODO: should have an actual way to find portion. For now, just use 0.2 of original buying power
         # (this means we should only hold onto 5 different stocks at any point in time) 
         
         portion = 0.2
-
         can_buy_exact = self.original_buying_power / price_per_share
         n = math.floor(can_buy_exact * portion)
         
         self.core.place_order(symbol, n, "buy", order_type="market")
 
+
     def startup(self):
-        
         print("Testing auth...")
         if not self.core.test_auth():
             print("Failure. Exiting with code 1...")
             exit(1)
         
+        for pos in self.core.get_my_assets():
+            self.buying_power -= (float(pos["qty"]) * float(pos["avg_entry_price"]))
         
         
         
