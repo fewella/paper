@@ -8,7 +8,7 @@ class Platform:
     
     
     def __init__(self):
-        self.delta = 1
+        self.delta = 60
         self.prospective_buy = self.get_prospective()
         
         # Dictionary: symbol->{qty: int, entry_price: float}
@@ -28,7 +28,9 @@ class Platform:
         '''
         
         self.startup() 
+        
         while True:
+
             # BUY CYCLE:
             for symbol in self.prospective_buy:
                 # Current algorithm: if moving average for past 5 mins is greater than past 20 mins, buy
@@ -36,7 +38,7 @@ class Platform:
                 MA_20mins = self.brain.n_moving_average(20, symbol, "minute")["c"]
 
                 if MA_5mins > MA_20mins:
-                    self.buy_portion(symbol, )
+                    self.buy_portion(symbol, MA_5mins)
 
 
             # SELL CYCLE:
@@ -44,22 +46,37 @@ class Platform:
             for stock in stocks:
                 print("symbol: " + str(stock["symbol"]))
                 print("qty: " + str(stock["qty"]))
-                print("")
-            
-            
 
+                symbol = stock["symbol"]
+                price = float(stock["market_value"])
+                entry_price = float(stock["avg_entry_price"])
+
+                MA_5mins  = self.brain.n_moving_average( 5, symbol, "minute")["c"]
+                MA_20mins = self.brain.n_moving_average(20, symbol, "minute")["c"]
+
+                if MA_5mins < MA_20mins and price > entry_price:
+                    self.sell_all(symbol, price)
+            
+            
             time.sleep(self.delta)
 
 
     def buy_portion(self, symbol, price_per_share):
-        # TODO: should have an actual way to find portion. For now, just use 0.2 of original buying power
-        # (this means we should only hold onto 5 different stocks at any point in time) 
+        # Buys as stock as portion of buying power
+        # symbol: str: stock to buy
+        # price_per_share: float: 
+        # TODO: should have an actual way to find portion. For now, just use 0.25 of original buying power
+        # (this means we should only hold onto 4 different stocks at any point in time) 
         
-        portion = 0.2
+        portion = 0.25
         can_buy_exact = self.original_buying_power / price_per_share
         n = math.floor(can_buy_exact * portion)
-        
+
         self.core.place_order(symbol, n, "buy", order_type="market")
+    
+
+    def sell_all(self, symbol, n, curr_price):
+        self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gte", limit_price=curr_price)
 
 
     def startup(self):
