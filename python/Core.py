@@ -77,6 +77,12 @@ class Core:
             "time_in_force" : time_in_force,
         }
 
+        if limit_price > 0:
+            data["limit_price"] = limit_price
+        
+        if stop_price > 0:
+            data["stop_price"] = stop_price
+
         data = json.dumps(data)
 
         r = requests.post(domain + method, headers=self.__get_auth_header(), data=data)

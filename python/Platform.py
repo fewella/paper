@@ -28,7 +28,7 @@ class Platform:
         '''
         
         self.startup() 
-        
+
         while True:
 
             # BUY CYCLE:
@@ -39,6 +39,8 @@ class Platform:
 
                 if MA_5mins > MA_20mins:
                     self.buy_portion(symbol, MA_5mins)
+                
+                self.startup()
 
 
             # SELL CYCLE:
@@ -55,12 +57,12 @@ class Platform:
                 MA_20mins = self.brain.n_moving_average(20, symbol, "minute")["c"]
 
                 if MA_5mins < MA_20mins and price > entry_price:
-                    self.sell_all(symbol, price)
+                    self.sell_all(symbol, float(stock["qty"]), price)
+                
+                self.update_buying_power()
             
+
             
-            time.sleep(self.delta)
-
-
     def buy_portion(self, symbol, price_per_share):
         # Buys as stock as portion of buying power
         # symbol: str: stock to buy
@@ -72,11 +74,11 @@ class Platform:
         can_buy_exact = self.original_buying_power / price_per_share
         n = math.floor(can_buy_exact * portion)
 
-        self.core.place_order(symbol, n, "buy", order_type="market")
+        res = self.core.place_order(symbol, n, "buy", order_type="market")
     
 
     def sell_all(self, symbol, n, curr_price):
-        self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gte", limit_price=curr_price)
+        self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc", limit_price=curr_price)
 
 
     def startup(self):
@@ -85,6 +87,10 @@ class Platform:
             print("Failure. Exiting with code 1...")
             exit(1)
         
+        self.update_buying_power()
+    
+    def update_buying_power(self):
+        self.buying_power = self.original_buying_power
         for pos in self.core.get_my_assets():
             self.buying_power -= (float(pos["qty"]) * float(pos["avg_entry_price"]))
         
