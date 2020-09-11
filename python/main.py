@@ -6,7 +6,7 @@ from Platform import Platform
 
 def custom():
     core = Core()
-    core.place_order("GOOG", 5, side="sell", time_in_force="gtc")
+    core.place_order("TWTR", 6, side="sell", order_type="market")
 
 if __name__ == "__main__":
     

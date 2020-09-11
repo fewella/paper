@@ -1,6 +1,8 @@
 import requests
 import json
 
+import numpy as np
+
 domain = "https://data.alpaca.markets"
 
 class Brain:
@@ -9,9 +11,9 @@ class Brain:
     """
 
     def __init__(self):
-        self.API_KEY = "PKBZJXADC72D0Z9B1TME"
-        self.SECRET_KEY = "2YPuW7wK5UOLZwx3/Nn1NQXWVrjyNhNLVvCh5i87"
-    
+        self.API_KEY = "PKIRKO0JDVCUNQUKUKHK"
+        self.SECRET_KEY = "PxtwYBfUGJYejqJyzt40FBr0NcwAnJQ/ykWL4bZb"
+
     
     def __get_auth_header(self):
         return {
@@ -41,7 +43,7 @@ class Brain:
             "c" : 0
         }
         
-        bars = self.get_data(timeframe, symbol, limit=n)
+        bars = self.get_data(symbol, timeframe, limit=n)
         for bar in bars:
             for t in moving_averages:
                 moving_averages[t] += bar[t]
@@ -51,8 +53,49 @@ class Brain:
         return moving_averages
 
 
+    def RSI(self, symbol, timeframe="1Min", n=15):
+        '''
+        Calculates the relative stength index of a stock given a timeframe and length
+        Returns a float between 0 and 100
 
-    def get_data(self, timeframe, symbol, limit=0, start=None, end=None):
+        symbol: str symbol to get data
+        timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D". If not provided, defaults to "1Min"
+        n: how many time periods to run RSI. If not provided, defaults to 15
+        '''
+        ups = []
+        downs = []
+        
+        data = self.get_data(symbol, timeframe, limit=n)
+        for i in range(1, len(data)):
+            today = data[i]['c']
+            prev = data[i-1]['c']
+
+            if today > prev:
+                ups.append(today - prev)
+            elif today < prev:
+                downs.append(prev - today)
+        
+        if len(ups) == 0:
+            rs = 0
+        elif len(downs) == 0:
+            rs = 9999999999999
+        else:
+            rs = np.array(ups).mean() / np.array(downs).mean()
+        rsi = 100 - 100 / (1 + rs)
+
+        return rsi
+    
+    def get_data(self, symbol, timeframe, limit=0, start=None, end=None):
+        '''
+        Uses the bars method from ,
+        Returns an array of dictionaries, where each dictionary contains the open ('o'), close ('c'), high ('h'), low ('l'), and volume ('v')
+
+        symbol: str symbol to get data
+        timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D"
+        limit: max number of bars to return 
+        start: data must come at or after timestamp start
+        end: data must come at or before timestamp end
+        '''
         method = "/v1/bars/" + timeframe
 
         method += ("?symbols=" + symbol)
@@ -72,3 +115,4 @@ class Brain:
             print("Get data failed with error code " + str(code))
             print(r.text)
             return []
+    

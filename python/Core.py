@@ -9,8 +9,8 @@ class Core:
     '''
 
     def __init__(self):
-        self.API_KEY = "PKBZJXADC72D0Z9B1TME"
-        self.SECRET_KEY = "2YPuW7wK5UOLZwx3/Nn1NQXWVrjyNhNLVvCh5i87"
+        self.API_KEY = "PKIRKO0JDVCUNQUKUKHK"
+        self.SECRET_KEY = "PxtwYBfUGJYejqJyzt40FBr0NcwAnJQ/ykWL4bZb"
 
 
     def __get_auth_header(self):
@@ -52,7 +52,7 @@ class Core:
         
         order_type: "market", "limit", "stop", or "stop_limit" (default "market") 
             "limit" requires limit_price, "stop" requires stop_price, "stop_limit" requries both
-
+        
         limit_price: int, > 0: 
         '''
         method = "/v2/orders"
@@ -125,12 +125,17 @@ class Core:
         
 
     def get_my_assets(self):
+        '''
+        Returns a list of dictionaries, each containing attributes like "symbol", "avg_entry_price", "qty", "current_price", and many more
+        list of all attributes at https://alpaca.markets/docs/api-documentation/api-v2/positions/
+        '''
+
         method = "/v2/positions"
 
         r = requests.get(domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
-            print("Retrieval successful")
+            print("get_my_assets() retrieval successful")
             data = json.loads(r.text)
             return list(data)
         else:

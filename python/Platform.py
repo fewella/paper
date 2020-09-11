@@ -5,19 +5,37 @@ from Core import Core
 from Brain import Brain
 
 class Platform:
-    
+    # TODO: IMPLEMEMNT A BUY QUEUE -  stocks that I want to buy should be put on a stock . 
+    # If the buy queue ("wish list?") is not empty and I'm low on buying power, sell my postition with the highest RSI
+
+    # TODO: 
     
     def __init__(self):
-        self.delta = 60
+        self.delta = 45
         self.prospective_buy = self.get_prospective()
         
         # Dictionary: symbol->{qty: int, entry_price: float}
-        self.holdings = {}
-        self.original_buying_power = 500
+        self.positions = {}
+        self.original_buying_power = 1000
         self.buying_power = self.original_buying_power
 
         self.core = Core()
         self.brain = Brain()
+
+        self.overbought = 70.0
+        self.oversold   = 30.0
+
+
+        # do not buy a stock at a higher price than last sold
+        # dict: symbol (str) -> last price sold (float)
+        self.last_sold = {}
+
+        # do not hold onto a stock for too long - UNLESS: it remains very underbought or is increasing in price quickly
+        # for now, just sell off stocks doing well that I've held onto for a while to speed up the algorithm
+        # last_bought: dict: symbol (str) -> (dict: "price" -> int, "time" -> int)
+        # self.last_bought = {}
+
+        self.wishlist = []
 
 
     def run(self):
@@ -31,38 +49,34 @@ class Platform:
 
         while True:
 
-            # BUY CYCLE:
+            # BUY CYCLE:    
             for symbol in self.prospective_buy:
-                # Current algorithm: if moving average for past 5 mins is greater than past 20 mins, buy
-                MA_5mins  = self.brain.n_moving_average( 5, symbol, "minute")["c"]
-                MA_20mins = self.brain.n_moving_average(20, symbol, "minute")["c"]
-
-                if MA_5mins > MA_20mins:
-                    self.buy_portion(symbol, MA_5mins)
                 
-                self.startup()
+                rsi = self.brain.RSI(symbol)
+                print("rsi for " + symbol + ": " + str(rsi))
+                
+                if rsi < self.oversold:
+                    p = self.get_curr_price(symbol)
+                    self.buy_portion(symbol, p)
 
 
             # SELL CYCLE:
-            stocks = self.core.get_my_assets()
-            for stock in stocks:
-                print("symbol: " + str(stock["symbol"]))
-                print("qty: " + str(stock["qty"]))
+            my_stocks = self.core.get_my_assets()
+            for position in my_stocks:
+                symbol = position["symbol"]
+                rsi = self.brain.RSI(position["symbol"])
+                if rsi > self.overbought or len(self.wishlist) > 0 or float(position["unrealized_pl"]) > 0.50:
+                    curr_price = position["current_price"]
+                    entry_price = position["avg_entry_price"]
+                    n = int(position["qty"])
+                    
+                    if curr_price > entry_price:
+                        print("selling: ", symbol)
+                        self.sell_all(symbol, n, self.get_curr_price(symbol))
+            print("wish list: "  , self.wishlist)
+            time.sleep(self.delta)
 
-                symbol = stock["symbol"]
-                price = float(stock["market_value"])
-                entry_price = float(stock["avg_entry_price"])
 
-                MA_5mins  = self.brain.n_moving_average( 5, symbol, "minute")["c"]
-                MA_20mins = self.brain.n_moving_average(20, symbol, "minute")["c"]
-
-                if MA_5mins < MA_20mins and price > entry_price:
-                    self.sell_all(symbol, float(stock["qty"]), price)
-                
-                self.update_buying_power()
-            
-
-            
     def buy_portion(self, symbol, price_per_share):
         # Buys as stock as portion of buying power
         # symbol: str: stock to buy
@@ -70,14 +84,24 @@ class Platform:
         # TODO: should have an actual way to find portion. For now, just use 0.25 of original buying power
         # (this means we should only hold onto 4 different stocks at any point in time) 
         
-        portion = 0.25
+        portion = 0.20
         can_buy_exact = self.original_buying_power / price_per_share
+        print(can_buy_exact)
         n = math.floor(can_buy_exact * portion)
 
-        res = self.core.place_order(symbol, n, "buy", order_type="market")
+        if n * price_per_share <= self.buying_power:
+            print("buying " + str(n) + " of " + symbol)
+            res = self.core.place_order(symbol, n, "buy", order_type="market")
+        else:
+            if symbol not in self.wishlist:
+                self.wishlist.append(symbol)
+        
+        self.update_buying_power_and_positions()
     
 
     def sell_all(self, symbol, n, curr_price):
+        if symbol in self.wishlist:
+            self.wishlist.remove(symbol)
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc", limit_price=curr_price)
 
 
@@ -86,15 +110,23 @@ class Platform:
         if not self.core.test_auth():
             print("Failure. Exiting with code 1...")
             exit(1)
-        
-        self.update_buying_power()
-    
-    def update_buying_power(self):
+
+        self.update_buying_power_and_positions()
+
+
+    def update_buying_power_and_positions(self):
         self.buying_power = self.original_buying_power
         for pos in self.core.get_my_assets():
             self.buying_power -= (float(pos["qty"]) * float(pos["avg_entry_price"]))
-        
-        
+            self.positions[pos["symbol"]] = {
+                "qty" : pos["qty"],
+                "entry_price" : pos["avg_entry_price"]
+            }
+
+
+    def get_curr_price(self, symbol):
+        return self.brain.get_data(symbol, "1Min", limit=1)[0]["c"]
+
         
     def get_prospective(self):
         return [
@@ -122,5 +154,29 @@ class Platform:
             'LOGI', 
             'ORCL', 
             'SNE', 
-            'BBY'
+            'BBY',
+            'CHK',
+            'SPY',
+            'BAC',
+            'F',
+            'T',
+            'NIO',
+            'VXX',
+            'AAL',
+            'IDEX',
+            'CCL',
+            'M',
+            'MFA',
+            'WFC',
+            'DAL',
+            'ENPH',
+            'VALE',
+            'SAVE',
+            'NOK',
+            'MGM',
+            'RCL',
+            'CLDR',
+            'C',
+            'PINS',
+            'ROKU'
         ]
