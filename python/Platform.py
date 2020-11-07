@@ -4,6 +4,8 @@ import math
 from Core import Core
 from Brain import Brain
 
+import Util
+
 class Platform:
     # TODO: IMPLEMEMNT A BUY QUEUE -  stocks that I want to buy should be put on a stock . 
     # If the buy queue ("wish list?") is not empty and I'm low on buying power, sell my postition with the highest RSI
@@ -12,7 +14,7 @@ class Platform:
     
     def __init__(self):
         self.delta = 45
-        self.prospective_buy = self.get_prospective()
+        self.prospective_buy = Util.retrieve_symbols()
         
         # Dictionary: symbol->{qty: int, entry_price: float}
         self.positions = {}
@@ -127,56 +129,3 @@ class Platform:
     def get_curr_price(self, symbol):
         return self.brain.get_data(symbol, "1Min", limit=1)[0]["c"]
 
-        
-    def get_prospective(self):
-        return [
-            'INTC', 
-            'AMD', 
-            'ATVI', 
-            'ZG', 
-            'TIVO', 
-            'T', 
-            'GE', 
-            'SNAP', 
-            'TWTR', 
-            'FIT', 
-            'VZ', 
-            'CSCO', 
-            'OPRA', 
-            'IMAX', 
-            'HPQ', 
-            'XRX', 
-            'NTGR', 
-            'JNPR', 
-            'CHGG', 
-            'DELL', 
-            'ALRM', 
-            'LOGI', 
-            'ORCL', 
-            'SNE', 
-            'BBY',
-            'CHK',
-            'SPY',
-            'BAC',
-            'F',
-            'T',
-            'NIO',
-            'VXX',
-            'AAL',
-            'IDEX',
-            'CCL',
-            'M',
-            'MFA',
-            'WFC',
-            'DAL',
-            'ENPH',
-            'VALE',
-            'SAVE',
-            'NOK',
-            'MGM',
-            'RCL',
-            'CLDR',
-            'C',
-            'PINS',
-            'ROKU'
-        ]

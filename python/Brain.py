@@ -3,6 +3,8 @@ import json
 
 import numpy as np
 
+import Secrets
+
 domain = "https://data.alpaca.markets"
 
 class Brain:
@@ -11,8 +13,8 @@ class Brain:
     """
 
     def __init__(self):
-        self.API_KEY = "PKIRKO0JDVCUNQUKUKHK"
-        self.SECRET_KEY = "PxtwYBfUGJYejqJyzt40FBr0NcwAnJQ/ykWL4bZb"
+        self.API_KEY = Secrets.API_KEY
+        self.SECRET_KEY = Secrets.SECRET_KEY
 
     
     def __get_auth_header(self):
@@ -53,6 +55,14 @@ class Brain:
         return moving_averages
 
 
+    def OBV(self, symbol, timeframe="1Min", n=15):
+        '''
+        Calculate the On-Balance Volume, giving a symbol, timeframe, and length
+        OBV is a momentum trading indicator based on volume. Momentum indicators detect momentum, and indicate whether a position will continue its current trend.
+        '''
+        obv = 0
+
+    
     def RSI(self, symbol, timeframe="1Min", n=15):
         '''
         Calculates the relative stength index of a stock given a timeframe and length

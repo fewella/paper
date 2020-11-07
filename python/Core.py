@@ -1,6 +1,8 @@
 import requests
 import json
 
+import Secrets
+
 domain = "https://paper-api.alpaca.markets"
 
 class Core:
@@ -9,8 +11,8 @@ class Core:
     '''
 
     def __init__(self):
-        self.API_KEY = "PKIRKO0JDVCUNQUKUKHK"
-        self.SECRET_KEY = "PxtwYBfUGJYejqJyzt40FBr0NcwAnJQ/ykWL4bZb"
+        self.API_KEY = Secrets.API_KEY
+        self.SECRET_KEY = Secrets.SECRET_KEY
 
 
     def __get_auth_header(self):

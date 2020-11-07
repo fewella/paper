@@ -4,9 +4,10 @@ from Core import Core
 from Brain import Brain
 from Platform import Platform
 
+import Util
+
 def custom():
-    core = Core()
-    core.place_order("TWTR", 6, side="sell", order_type="market")
+    pass
 
 if __name__ == "__main__":
     
@@ -14,8 +15,9 @@ if __name__ == "__main__":
     if argc > 2:
         print("Usage: python main.py [behavior]")
     
-    if argc == 2 and argv[1] == "--custom":
-        custom()
+    if argc == 2:
+        if argv[1] == "--custom":
+            custom()
     else:
         platform = Platform()
         platform.run()
