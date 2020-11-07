@@ -110,7 +110,7 @@ class Platform:
     def startup(self):
         print("Testing auth...")
         if not self.core.test_auth():
-            print("Failure. Exiting with code 1...")
+            print("Could not authenticate. Exiting with code 1...")
             exit(1)
 
         self.update_buying_power_and_positions()

@@ -68,11 +68,12 @@ class Brain():
         prior_typical_price = -1
         for bar in bars:
             typical_price = (bar["h"] + bar["l"] + bar["c"]) / 3.0
-            raw_money_flow = typical_price * bar["v"]
-            if typical_price > prior_typical_price:
-                positive_money_flow += raw_money_flow
-            else:
-                negative_money_flow += raw_money_flow
+            if prior_typical_price != -1:
+                raw_money_flow = typical_price * bar["v"]
+                if typical_price > prior_typical_price:
+                    positive_money_flow += raw_money_flow
+                else:
+                    negative_money_flow += raw_money_flow
 
             prior_typical_price = typical_price
 
@@ -86,7 +87,6 @@ class Brain():
     
     def OBV(self, symbol, timeframe="1Min", n=15):
         '''
-        
         Calculate the On-Balance Volume, giving a symbol, timeframe, and length (in this case, n really represents "how far back are you thinking?")
         SHOULD BE USED TO CONFIRM DECISIONS, NOT DRIVE THEM!
         OBV is a momentum trading indicator based on volume. Looks at trend - how does the market feel? Tries to follow "smart money".
@@ -94,9 +94,18 @@ class Brain():
         '''
 
         obv = 0
+        prev_close = -1
+        bars = self.core.get_data(symbol, timeframe, n+1) # maybe not +1
+        for bar in bars:
+            curr_close = bar["c"]
+            volumn = bar["v"]
+            if prev_close != -1:
+                if curr_close > prev_close:
+                    obv += volumn
+                elif curr_close < prev_close:
+                    obv -= volumn
 
-        #bars = self.core.get_data()
-
+            prev_close = curr_close
 
         return obv
     
