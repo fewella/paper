@@ -7,22 +7,15 @@ import Secrets
 
 domain = "https://data.alpaca.markets"
 
-class Brain:
+class Brain():
     """
-    This class does anything and everything data and algorithm related.
+    This class does anything and everything data and algorithm related. 
+    Should make NO network calls - everything here should be local
     """
 
-    def __init__(self):
-        self.API_KEY = Secrets.API_KEY
-        self.SECRET_KEY = Secrets.SECRET_KEY
+    def __init__(self, c):
+        self.core = c
 
-    
-    def __get_auth_header(self):
-        return {
-            "APCA-API-KEY-ID"     : self.API_KEY, 
-            "APCA-API-SECRET-KEY" : self.SECRET_KEY
-        }
-    
     
     def n_moving_average(self, n, symbol, timeframe="day"):
         """
@@ -45,7 +38,7 @@ class Brain:
             "c" : 0
         }
         
-        bars = self.get_data(symbol, timeframe, limit=n)
+        bars = self.core.get_data(symbol, timeframe, limit=n)
         for bar in bars:
             for t in moving_averages:
                 moving_averages[t] += bar[t]
@@ -69,7 +62,7 @@ class Brain:
         
         # https://www.investopedia.com/terms/m/mfi.asp
 
-        bars = self.get_data(symbol, timeframe, limit=n+1)
+        bars = self.core.get_data(symbol, timeframe, limit=n+1)
         positive_money_flow = 0
         negative_money_flow = 0
         prior_typical_price = -1
@@ -93,11 +86,16 @@ class Brain:
     
     def OBV(self, symbol, timeframe="1Min", n=15):
         '''
-        Calculate the On-Balance Volume, giving a symbol, timeframe, and length
-        OBV is a momentum trading indicator based on volume. Momentum indicators detect momentum, and indicate whether a position will continue its current trend.
+        
+        Calculate the On-Balance Volume, giving a symbol, timeframe, and length (in this case, n really represents "how far back are you thinking?")
+        SHOULD BE USED TO CONFIRM DECISIONS, NOT DRIVE THEM!
+        OBV is a momentum trading indicator based on volume. Looks at trend - how does the market feel? Tries to follow "smart money".
+        This actual number doesn't matter. What *does* matter is how it changes over time (TODO: look at slope). 
         '''
 
         obv = 0
+
+        #bars = self.core.get_data()
 
 
         return obv
@@ -114,7 +112,7 @@ class Brain:
         ups = []
         downs = []
         
-        data = self.get_data(symbol, timeframe, limit=n)
+        data = self.core.get_data(symbol, timeframe, limit=n)
         for i in range(1, len(data)):
             today = data[i]['c']
             prev = data[i-1]['c']
@@ -133,35 +131,4 @@ class Brain:
         rsi = 100 - 100 / (1 + rs)
 
         return rsi
-    
-    def get_data(self, symbol, timeframe, limit=0, start=None, end=None):
-        '''
-        Uses the bars method from ,
-        Returns an array of dictionaries, where each dictionary contains the open ('o'), close ('c'), high ('h'), low ('l'), and volume ('v')
-
-        symbol: str symbol to get data
-        timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D"
-        limit: max number of bars to return 
-        start: data must come at or after timestamp start
-        end: data must come at or before timestamp end
-        '''
-        method = "/v1/bars/" + timeframe
-
-        method += ("?symbols=" + symbol)
-        method += ("&limit=" + str(limit))
-
-        if start != None:
-            method += ("&start=" + start)
-
-        if end != None:
-            method += ("&end=" + end)
-        
-        r = requests.get(domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            return list(json.loads(r.text)[symbol])
-        else:
-            print("Get data failed with error code " + str(code))
-            print(r.text)
-            return []
     

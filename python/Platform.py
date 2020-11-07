@@ -12,7 +12,7 @@ class Platform:
 
     # TODO: 
     
-    def __init__(self):
+    def __init__(self, c, b):
         self.delta = 45
         self.prospective_buy = Util.retrieve_symbols()
         
@@ -21,8 +21,8 @@ class Platform:
         self.original_buying_power = 1000
         self.buying_power = self.original_buying_power
 
-        self.core = Core()
-        self.brain = Brain()
+        self.core = c
+        self.brain = b
 
         self.overbought = 70.0
         self.oversold   = 30.0

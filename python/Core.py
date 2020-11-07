@@ -112,6 +112,7 @@ class Core:
             print(r.text)
             return False
 
+
     def cancel_all_orders(self):
         method = "/v2/orders"
 
@@ -159,6 +160,39 @@ class Core:
             print("Get assets failed with code: " + str(code))
             print(r.text)
             return []
+    
+    
+    def get_data(self, symbol, timeframe, limit=0, start=None, end=None):
+        '''
+        Uses the bars method from ,
+        Returns an array of dictionaries, where each dictionary contains the open ('o'), close ('c'), high ('h'), low ('l'), and volume ('v')
+
+        symbol: str symbol to get data
+        timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D"
+        limit: max number of bars to return 
+        start: data must come at or after timestamp start
+        end: data must come at or before timestamp end
+        '''
+        method = "/v1/bars/" + timeframe
+
+        method += ("?symbols=" + symbol)
+        method += ("&limit=" + str(limit))
+
+        if start != None:
+            method += ("&start=" + start)
+
+        if end != None:
+            method += ("&end=" + end)
+        
+        r = requests.get(domain + method, headers=self.__get_auth_header())
+        code = r.status_code
+        if code == 200:
+            return list(json.loads(r.text)[symbol])
+        else:
+            print("Get data failed with error code " + str(code))
+            print(r.text)
+            return []
+    
     
     def test_asset(self, symbol):
         method = "/v2/assets/"
