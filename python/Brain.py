@@ -60,19 +60,35 @@ class Brain:
         Calculate the MFI of a symbol. 
         MFI > 80 : overbought  -> SELL
         MFI < 20 : underbought -> BUY
-        Sometimes 90 and 10 are used as thresholds instead. trial 
+        Sometimes 90 and 10 are used as thresholds instead. Try with both, maybe add as parameter
 
         symbol: str symbol
         timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D". If not provided, defaults to "1Min"
         n: how many time periods to run RSI. If not provided, defaults to 14
         '''
+        
+        # https://www.investopedia.com/terms/m/mfi.asp
 
-        mfi = 0
+        bars = self.get_data(symbol, timeframe, limit=n+1)
+        positive_money_flow = 0
+        negative_money_flow = 0
+        prior_typical_price = -1
+        for bar in bars:
+            typical_price = (bar["h"] + bar["l"] + bar["c"]) / 3.0
+            raw_money_flow = typical_price * bar["v"]
+            if typical_price > prior_typical_price:
+                positive_money_flow += raw_money_flow
+            else:
+                negative_money_flow += raw_money_flow
 
-        #data = self.get_data(symbol, timeframe, limit=n)
-        #print(len(data))
+            prior_typical_price = typical_price
 
-        return mfi
+        money_flow_ratio = positive_money_flow/negative_money_flow
+        money_flow_index = 100 - (100/(1 + money_flow_ratio))
+
+        print(money_flow_index)
+
+        return money_flow_index
 
     
     def OBV(self, symbol, timeframe="1Min", n=15):

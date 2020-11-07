@@ -7,7 +7,8 @@ from Platform import Platform
 import Util
 
 def custom():
-    pass
+    b = Brain()
+    b.MFI("GOOG", timeframe="1D")
 
 if __name__ == "__main__":
     
