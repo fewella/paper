@@ -55,13 +55,36 @@ class Brain:
         return moving_averages
 
 
+    def MFI(self, symbol, timeframe="1Min", n=14):
+        '''
+        Calculate the MFI of a symbol. 
+        MFI > 80 : overbought  -> SELL
+        MFI < 20 : underbought -> BUY
+        Sometimes 90 and 10 are used as thresholds instead. trial 
+
+        symbol: str symbol
+        timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D". If not provided, defaults to "1Min"
+        n: how many time periods to run RSI. If not provided, defaults to 14
+        '''
+
+        mfi = 0
+
+        #data = self.get_data(symbol, timeframe, limit=n)
+        #print(len(data))
+
+        return mfi
+
+    
     def OBV(self, symbol, timeframe="1Min", n=15):
         '''
         Calculate the On-Balance Volume, giving a symbol, timeframe, and length
         OBV is a momentum trading indicator based on volume. Momentum indicators detect momentum, and indicate whether a position will continue its current trend.
         '''
+
         obv = 0
 
+
+        return obv
     
     def RSI(self, symbol, timeframe="1Min", n=15):
         '''
