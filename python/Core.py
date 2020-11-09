@@ -3,7 +3,8 @@ import json
 
 import Secrets
 
-domain = "https://paper-api.alpaca.markets"
+core_domain = "https://paper-api.alpaca.markets"
+data_domain = "https://data.alpaca.markets"
 
 class Core:
     '''
@@ -39,7 +40,7 @@ class Core:
     def get_orders(self):
         method = "/v2/orders"
 
-        r = requests.get(domain + method, headers=self.__get_auth_header())
+        r = requests.get(core_domain + method, headers=self.__get_auth_header())
         print(r.text)
 
 
@@ -87,7 +88,7 @@ class Core:
 
         data = json.dumps(data)
 
-        r = requests.post(domain + method, headers=self.__get_auth_header(), data=data)
+        r = requests.post(core_domain + method, headers=self.__get_auth_header(), data=data)
         code = r.status_code
         if code == 200:
             print("Order placed successfully")
@@ -102,7 +103,7 @@ class Core:
     def cancel_order(self, order_id):
         method = "v2/orders/" + order_id
 
-        r = requests.delete(domain + method, headers=self.__get_auth_header())
+        r = requests.delete(core_domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             print("order cancelled successfully")
@@ -116,7 +117,7 @@ class Core:
     def cancel_all_orders(self):
         method = "/v2/orders"
 
-        r = requests.delete(domain + method, headers=self.__get_auth_header())
+        r = requests.delete(core_domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             print("ALL ORDERS cancelled successfully")
@@ -135,7 +136,7 @@ class Core:
 
         method = "/v2/positions"
 
-        r = requests.get(domain + method, headers=self.__get_auth_header())
+        r = requests.get(core_domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             print("get_my_assets() retrieval successful")
@@ -150,7 +151,7 @@ class Core:
     def get_assets(self):
         method = "/v2/assets"
 
-        r = requests.get(domain + method, headers=self.__get_auth_header())
+        r = requests.get(core_domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             print("Get assets successful")
@@ -184,7 +185,7 @@ class Core:
         if end != None:
             method += ("&end=" + end)
         
-        r = requests.get(domain + method, headers=self.__get_auth_header())
+        r = requests.get(data_domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             return list(json.loads(r.text)[symbol])
@@ -193,11 +194,11 @@ class Core:
             print(r.text)
             return []
     
-    
+
     def test_asset(self, symbol):
         method = "/v2/assets/"
 
-        r = requests.get(domain + method + symbol, headers=self.__get_auth_header())
+        r = requests.get(core_domain + method + symbol, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             return True

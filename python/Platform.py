@@ -127,5 +127,5 @@ class Platform:
 
 
     def get_curr_price(self, symbol):
-        return self.brain.get_data(symbol, "1Min", limit=1)[0]["c"]
+        return self.core.get_data(symbol, "1Min", limit=1)[0]["c"]
 

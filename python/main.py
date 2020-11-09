@@ -18,9 +18,12 @@ TODO list:
 
 
 def custom():
-    b = Brain()
-    mfi = b.MFI("GOOG", timeframe="1D")
-    print(mfi)
+    b = Brain(Core())
+    mfi = b.MFI("AAPL", timeframe="1D")
+    print("mfi:", mfi)
+
+    macd = b.MACD("GOOG", timeframe="1D")
+    print("macd:", macd)
 
 
 if __name__ == "__main__":

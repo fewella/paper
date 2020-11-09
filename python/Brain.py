@@ -5,12 +5,13 @@ import numpy as np
 
 import Secrets
 
-domain = "https://data.alpaca.markets"
-
 class Brain():
     """
     This class does anything and everything data and algorithm related. 
     Should make NO network calls - everything here should be local
+
+    BIG TODO: There are many redundant calls to get_data(), these need to be consolidated/somehow streamlined. 
+        -> idea 1: in core, get_data() first checks an internal data structure, makes call to get data ONLY IF NEEDED
     """
 
     def __init__(self, c):
@@ -48,9 +49,32 @@ class Brain():
         return moving_averages
 
 
+    def EMA(self, symbol, timeframe="1Min", n=12, smoothing=2):
+        '''
+        Calculates the Exponential Moving Average (EMA) for a symbol
+        EMA is a moving average that weights recent data more heavily
+        '''
+
+        ema = self.n_moving_average(n, symbol, timeframe=timeframe)["c"]
+        bars = self.core.get_data(symbol, timeframe, limit=n)
+        for bar in bars:
+            ema = bar["c"] * (smoothing/(1 + n)) + ema * (1 - (smoothing/(1 + n)))
+        
+        return ema
+            
+    
+    def MACD(self, symbol, timeframe="1Min", n=-1):
+        '''
+        Trend-following momentum indicator
+        n is included for consistency with other signal calls, but is ignored
+        '''
+        
+        return self.EMA(symbol, timeframe=timeframe, n=12) - self.EMA(symbol, timeframe=timeframe, n=26)
+
+    
     def MFI(self, symbol, timeframe="1Min", n=14):
         '''
-        Calculate the MFI of a symbol. 
+        Calculate the Money Flow Index (MFI) of a symbol. 
         MFI > 80 : overbought  -> SELL
         MFI < 20 : underbought -> BUY
         Sometimes 90 and 10 are used as thresholds instead. Try with both, maybe add as parameter
