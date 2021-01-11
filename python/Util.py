@@ -8,4 +8,4 @@ def retrieve_symbols():
     '''
 
     nyse_symbol_url = "ftp://ftp.nasdaqtrader.com/SymbolDirectory/nasdaqlisted.txt"
-    return [line.split("|")[0] for line in urllib.request.urlopen(nyse_symbol_url).read().decode().split('\r\n')][:-2]
+    return [line.split("|")[0] for line in urllib.request.urlopen(nyse_symbol_url).read().decode().split('\r\n')][1:-2]

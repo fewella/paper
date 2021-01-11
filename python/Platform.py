@@ -59,7 +59,7 @@ class Platform:
                 
                 if rsi < self.oversold:
                     p = self.get_curr_price(symbol)
-                    self.buy_portion(symbol, p)
+                    #self.buy_portion(symbol, p)
 
 
             # SELL CYCLE:

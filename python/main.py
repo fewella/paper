@@ -6,6 +6,8 @@ from Platform import Platform
 
 import Util
 
+import asyncio
+
 '''
 Driver B)
 No argument run will run the platform and simulation with all defaults.
@@ -18,12 +20,15 @@ TODO list:
 
 
 def custom():
-    b = Brain(Core())
+    c = Core()
+    b = Brain(c)
     mfi = b.MFI("AAPL", timeframe="1D")
     print("mfi:", mfi)
 
     macd = b.MACD("GOOG", timeframe="1D")
     print("macd:", macd)
+
+    #asyncio.run(c.initialize_stream())
 
 
 if __name__ == "__main__":
@@ -35,6 +40,7 @@ if __name__ == "__main__":
     if argc == 2:
         if argv[1] == "--custom":
             custom()
+            
     else:
         core = Core()
         brain = Brain(core)

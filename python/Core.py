@@ -1,10 +1,15 @@
 import requests
 import json
 
+import asyncio
+import websockets
+
 import Secrets
 
 core_domain = "https://paper-api.alpaca.markets"
 data_domain = "https://data.alpaca.markets"
+stream_domain = "wss://data.alpaca.markets/stream"
+#stream_domain = "wss://echo.websocket.org"
 
 class Core:
     '''
@@ -18,15 +23,33 @@ class Core:
 
     def __get_auth_header(self):
         return {
-            "APCA-API-KEY-ID"     : self.API_KEY, 
+            "APCA-API-KEY-ID"     : self.API_KEY,
             "APCA-API-SECRET-KEY" : self.SECRET_KEY
         }
+
+
+    async def initialize_stream(self):
+        
+        auth_req = f'''
+        {{
+            "action": {{
+                "key_id": "{self.API_KEY}",
+                "secret_key": "{self.SECRET_KEY}"
+            }}
+        }}'''
+        
+        async with websockets.connect(stream_domain, ping_interval=None) as websocket:
+            await websocket.send(auth_req)
+            print("sent")
+            resp = await websocket.recv()
+            print("recv'd")
+            print(resp)
         
 
     def test_auth(self):
         method = "/v2/account"
 
-        r = requests.get(domain + method, headers=self.__get_auth_header())
+        r = requests.get(core_domain + method, headers=self.__get_auth_header())
         code = r.status_code
         if code == 200:
             print("Authentication success")

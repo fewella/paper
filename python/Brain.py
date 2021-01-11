@@ -104,8 +104,6 @@ class Brain():
         money_flow_ratio = positive_money_flow/negative_money_flow
         money_flow_index = 100 - (100/(1 + money_flow_ratio))
 
-        print(money_flow_index)
-
         return money_flow_index
 
     
