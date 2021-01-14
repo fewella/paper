@@ -1,0 +1,6 @@
+asyncio
+requests
+json
+numpy
+websockets
+alpaca_trade_api
