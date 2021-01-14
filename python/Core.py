@@ -13,6 +13,15 @@ data_domain = "https://data.alpaca.markets"
 
 conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.markets')
 
+@conn.on(r'^AM$')
+async def on_minute_bars(conn, channel, bar):
+    print('bars', bar)
+
+
+@conn.on(r'^A$')
+async def on_second_bars(conn, channel, bar):
+    print('bars', bar)
+
 class Core:
     '''
     Responsible for all API calls. Orders and all communication should be executed via Core. 
@@ -30,19 +39,9 @@ class Core:
             "APCA-API-SECRET-KEY" : self.SECRET_KEY
         }
 
-    
-    @conn.on(r'^AM$')
-    async def on_minute_bars(self, conn, channel, bar):
-        print('bars', bar)
-
-
-    @conn.on(r'^A$')
-    async def on_second_bars(self, conn, channel, bar):
-        print('bars', bar)
-
 
     async def init_stream(self):
-        await conn.run(['trade_updates', 'AM.TSLA'])
+        await conn.run(['trade_updates', 'AM.*', 'A.TSLA'])
         
 
     def test_auth(self):
