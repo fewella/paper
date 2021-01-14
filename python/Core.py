@@ -3,17 +3,20 @@ import json
 
 import asyncio
 import websockets
+import alpaca_trade_api as tradeapi
 
 import Secrets
 
+
 core_domain = "https://paper-api.alpaca.markets"
 data_domain = "https://data.alpaca.markets"
-stream_domain = "wss://data.alpaca.markets/stream"
-#stream_domain = "wss://echo.websocket.org"
+
+conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.markets')
 
 class Core:
     '''
     Responsible for all API calls. Orders and all communication should be executed via Core. 
+    TODO: make all manual web requests through alpaca_trade_api
     '''
 
     def __init__(self):
@@ -27,23 +30,19 @@ class Core:
             "APCA-API-SECRET-KEY" : self.SECRET_KEY
         }
 
+    
+    @conn.on(r'^AM$')
+    async def on_minute_bars(self, conn, channel, bar):
+        print('bars', bar)
 
-    async def initialize_stream(self):
-        
-        auth_req = f'''
-        {{
-            "action": {{
-                "key_id": "{self.API_KEY}",
-                "secret_key": "{self.SECRET_KEY}"
-            }}
-        }}'''
-        
-        async with websockets.connect(stream_domain, ping_interval=None) as websocket:
-            await websocket.send(auth_req)
-            print("sent")
-            resp = await websocket.recv()
-            print("recv'd")
-            print(resp)
+
+    @conn.on(r'^A$')
+    async def on_second_bars(self, conn, channel, bar):
+        print('bars', bar)
+
+
+    async def init_stream(self):
+        await conn.run(['trade_updates', 'AM.TSLA'])
         
 
     def test_auth(self):

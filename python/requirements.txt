@@ -1,4 +1,5 @@
 asyncio
+nest_asyncio
 requests
 json
 numpy

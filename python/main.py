@@ -7,6 +7,7 @@ from Platform import Platform
 import Util
 
 import asyncio
+import nest_asyncio
 
 '''
 Driver B)
@@ -28,10 +29,14 @@ def custom():
     macd = b.MACD("GOOG", timeframe="1D")
     print("macd:", macd)
 
-    #asyncio.run(c.initialize_stream())
+    #c.place_order("GOOG", 5, side='buy')
+
+    asyncio.run(c.init_stream())
 
 
 if __name__ == "__main__":
+
+    nest_asyncio.apply()
     
     argc = len(argv)
     if argc > 2:
