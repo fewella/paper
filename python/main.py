@@ -23,11 +23,14 @@ TODO list:
 def custom():
     c = Core()
     b = Brain(c)
-    mfi = b.MFI("AAPL", timeframe="1D")
-    print("mfi:", mfi)
+    #mfi = b.MFI("AAPL", timeframe="1D")
+    #print("mfi:", mfi)
 
-    macd = b.MACD("GOOG", timeframe="1D")
-    print("macd:", macd)
+    #macd = b.MACD("GOOG", timeframe="1D")
+    #print("macd:", macd)
+
+    mov = b.n_moving_average(50, "AAPL", timeframe="day")
+    print("50 day mov avg: ", mov)
 
     c.place_order("GOOG", 5, side='buy')
     #c.get_orders()

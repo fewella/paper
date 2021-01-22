@@ -5,8 +5,6 @@ import asyncio
 import websockets
 import alpaca_trade_api as tradeapi
 
-import Secrets
-
 # TODO: put URLS and other constants in another file
 ACCOUNT_STATUS_ACTIVE = "ACTIVE"
 
@@ -32,18 +30,8 @@ class Core:
     '''
 
     def __init__(self):
-        self.API_KEY = Secrets.API_KEY
-        self.SECRET_KEY = Secrets.SECRET_KEY
-
         self.api = tradeapi.REST(base_url=core_domain)
         self.data_api = tradeapi.REST(base_url=data_domain)
-
-
-    def __get_auth_header(self):
-        return {
-            "APCA-API-KEY-ID"     : self.API_KEY,
-            "APCA-API-SECRET-KEY" : self.SECRET_KEY
-        }
 
 
     async def init_stream(self):

@@ -3,8 +3,6 @@ import json
 
 import numpy as np
 
-import Secrets
-
 class Brain():
     """
     This class does anything and everything data and algorithm related. 
@@ -18,18 +16,18 @@ class Brain():
         self.core = c
 
     
-    def n_moving_average(self, n, symbol, timeframe="day"):
+    def n_moving_average(self, n, symbol, timeframe="day", base="c"):
         """
         Calculates the n-day or n-minute moving average of a stock
 
         Parameters:
             n: how many days: [1, 1000]
             symbol: which stock
-            timeframe: granularity of data: "day" or "minute"
+            timeframe: granularity of data: "day" or "minute" (optional)
+            base: which aspect of a bar is used to calculate moving average ("o", "h", "l", or "c") (optional)
 
         Returns:
-            A dict of the open, high, low, and close moving averages (referenced as "o", "h", "l", and "c"). 
-            If unsure, close ("c") is most popular
+            The moving average over n time intervals, based on the closing price 
         """
         
         moving_averages = {
@@ -40,13 +38,16 @@ class Brain():
         }
         
         bars = self.core.get_data(symbol, timeframe, limit=n)
-        for bar in dict(bars)[symbol]:
-            for t in moving_averages:
-                moving_averages[t] += bar[t]
+        # TODO there's GOTTA be a better way do do this 
+        for bar in bars:
+            moving_averages["o"] += bar.o
+            moving_averages["h"] += bar.h
+            moving_averages["l"] += bar.l
+            moving_averages["c"] += bar.c
         for t in moving_averages:
             moving_averages[t] /= len(bars)
         
-        return moving_averages
+        return moving_averages[base]
 
 
     def EMA(self, symbol, timeframe="1Min", n=12, smoothing=2):
@@ -55,10 +56,10 @@ class Brain():
         EMA is a moving average that weights recent data more heavily
         '''
 
-        ema = self.n_moving_average(n, symbol, timeframe=timeframe)["c"]
+        ema = self.n_moving_average(n, symbol, timeframe=timeframe).c
         bars = self.core.get_data(symbol, timeframe, limit=n)
         for bar in bars:
-            ema = bar["c"] * (smoothing/(1 + n)) + ema * (1 - (smoothing/(1 + n)))
+            ema = bar.c * (smoothing/(1 + n)) + ema * (1 - (smoothing/(1 + n)))
         
         return ema
             
@@ -119,8 +120,8 @@ class Brain():
         prev_close = -1
         bars = self.core.get_data(symbol, timeframe, n+1) # maybe not +1
         for bar in bars:
-            curr_close = bar["c"]
-            volumn = bar["v"]
+            curr_close = bar.c
+            volumn = bar.v
             if prev_close != -1:
                 if curr_close > prev_close:
                     obv += volumn
@@ -131,6 +132,7 @@ class Brain():
 
         return obv
     
+
     def RSI(self, symbol, timeframe="1Min", n=15):
         '''
         Calculates the relative stength index of a stock given a timeframe and length
