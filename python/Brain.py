@@ -29,25 +29,15 @@ class Brain():
         Returns:
             The moving average over n time intervals, based on the closing price 
         """
-        
-        moving_averages = {
-            "o" : 0,
-            "h" : 0,
-            "l" : 0,
-            "c" : 0
-        }
-        
+
+        moving_average = 0.0
+
         bars = self.core.get_data(symbol, timeframe, limit=n)
-        # TODO there's GOTTA be a better way do do this 
         for bar in bars:
-            moving_averages["o"] += bar.o
-            moving_averages["h"] += bar.h
-            moving_averages["l"] += bar.l
-            moving_averages["c"] += bar.c
-        for t in moving_averages:
-            moving_averages[t] /= len(bars)
+            moving_average += getattr(bar, base)
+        moving_average /= n
         
-        return moving_averages[base]
+        return moving_average
 
 
     def EMA(self, symbol, timeframe="1Min", n=12, smoothing=2):
