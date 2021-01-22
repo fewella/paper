@@ -7,7 +7,10 @@ import alpaca_trade_api as tradeapi
 
 import Secrets
 
+# TODO: put URLS and other constants in another file
+ACCOUNT_STATUS_ACTIVE = "ACTIVE"
 
+#core_domain = "https://api.alpaca.markets"
 core_domain = "https://paper-api.alpaca.markets"
 data_domain = "https://data.alpaca.markets"
 
@@ -32,6 +35,9 @@ class Core:
         self.API_KEY = Secrets.API_KEY
         self.SECRET_KEY = Secrets.SECRET_KEY
 
+        self.api = tradeapi.REST(base_url=core_domain)
+        self.data_api = tradeapi.REST(base_url=data_domain)
+
 
     def __get_auth_header(self):
         return {
@@ -45,27 +51,15 @@ class Core:
         
 
     def test_auth(self):
-        method = "/v2/account"
-
-        r = requests.get(core_domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            print("Authentication success")
-            return True
-        else:
-            print("Authentication failure. Response code: " + str(code))
-            print(r.text)
-            return False
+        account = self.api.get_account()
+        return account.status == ACCOUNT_STATUS_ACTIVE
 
 
     def get_orders(self):
-        method = "/v2/orders"
-
-        r = requests.get(core_domain + method, headers=self.__get_auth_header())
-        print(r.text)
+        return self.api.list_orders()
 
 
-    def place_order(self, symbol, n, side="sell", order_type="market", time_in_force="day", limit_price=-1, stop_price=-1, extended_hours=False):
+    def place_order(self, symbol, n, side="sell", order_type="market", time_in_force="day", limit_price=None, stop_price=None, extended_hours=False):
         '''
         Places an order on the market. 
         Requires symbol (str), n (int)
@@ -79,112 +73,39 @@ class Core:
         
         limit_price: int, > 0: 
         '''
-        method = "/v2/orders"
 
-        if n <= 0:
-            print("Please provide a valid quantity")
-            return False
-
-        if (order_type == "limit" or order_type == "stop_limit") and limit_price == -1:
-            print("Please provide a limit price for limit and stop_limit orders")
-            return False
-        
-        if (order_type == "stop" or order_type == "stop_limit") and stop_price == -1:
-            print("Please provide a stop price for stop and stop_limit orders ")
-            return False
-        
-        data = {
-            "symbol"        : symbol,
-            "qty"           : n,
-            "side"          : side,
-            "type"          : order_type,
-            "time_in_force" : time_in_force,
-        }
-
-        if limit_price > 0:
-            data["limit_price"] = limit_price
-        
-        if stop_price > 0:
-            data["stop_price"] = stop_price
-
-        data = json.dumps(data)
-
-        r = requests.post(core_domain + method, headers=self.__get_auth_header(), data=data)
-        code = r.status_code
-        if code == 200:
-            print("Order placed successfully")
-            response_dict = json.loads(r.text)
-            return True
-        else:
-            print("Post request failed with status code " + str(code))
-            print(r.text)
-            return False
+        self.api.submit_order(symbol, n, side, order_type, time_in_force, limit_price=limit_price, stop_price=stop_price)
     
     
     def cancel_order(self, order_id):
-        method = "v2/orders/" + order_id
-
-        r = requests.delete(core_domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            print("order cancelled successfully")
-            return True
-        else:
-            print("Request failed with code: " + str(code))
-            print(r.text)
-            return False
+        self.cancel_order(order_id)
 
 
     def cancel_all_orders(self):
-        method = "/v2/orders"
-
-        r = requests.delete(core_domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            print("ALL ORDERS cancelled successfully")
-            return True
-        else:
-            print("Request failed with code: " + str(code))
-            print(r.text)
-            return False
+        self.cancer_all_orders()
         
 
-    def get_my_assets(self):
+    def get_positions(self):
         '''
         Returns a list of dictionaries, each containing attributes like "symbol", "avg_entry_price", "qty", "current_price", and many more
         list of all attributes at https://alpaca.markets/docs/api-documentation/api-v2/positions/
+
+        return list if successful, empty list if failed
         '''
 
-        method = "/v2/positions"
+        return self.api.list_positions()
+    
+    
+    def get_available_assets(self):
+        '''
+        Returns a list of tradable assests
+        TODO: Maybe use instead of nyse stock thing in Util.py
+        '''
 
-        r = requests.get(core_domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            print("get_my_assets() retrieval successful")
-            data = json.loads(r.text)
-            return list(data)
-        else:
-            print("Retrieval failed with code: " + str(code))
-            print(r.text)
-            return []
+        return self.api.list_assets()
     
     
-    def get_assets(self):
-        method = "/v2/assets"
-
-        r = requests.get(core_domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            print("Get assets successful")
-            data = json.loads(r.text)
-            return list(data)
-        else:
-            print("Get assets failed with code: " + str(code))
-            print(r.text)
-            return []
-    
-    
-    def get_data(self, symbol, timeframe, limit=0, start=None, end=None):
+    def get_data(self, symbol, timeframe, limit=0, start=None, end=None, after=None, until=None):
         '''
         Uses the bars method from ,
         Returns an array of dictionaries, where each dictionary contains the open ('o'), close ('c'), high ('h'), low ('l'), and volume ('v')
@@ -192,40 +113,16 @@ class Core:
         symbol: str symbol to get data
         timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D"
         limit: max number of bars to return 
-        start: data must come at or after timestamp start
-        end: data must come at or before timestamp end
+        start: data must come at or after timestamp start (after: data must comes AFTER timestamp after)
+        end: data must come at or before timestamp end (until: data must come BEFORE timestamp until)
         '''
-        method = "/v1/bars/" + timeframe
+        data = self.data_api.get_barset(symbol, timeframe, limit, start=start, end=end, after=after, until=until)
 
-        method += ("?symbols=" + symbol)
-        method += ("&limit=" + str(limit))
-
-        if start != None:
-            method += ("&start=" + start)
-
-        if end != None:
-            method += ("&end=" + end)
-        
-        r = requests.get(data_domain + method, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            return list(json.loads(r.text)[symbol])
-        else:
-            print("Get data failed with error code " + str(code))
-            print(r.text)
-            return []
-    
+        # TODO: make this work for multiple symbols. Generally we want to make fewer requests.
+        # but only we should only be using this at setup and streaming the rest of the data. big monkahmm. 
+        return dict(data)[symbol]
 
     def test_asset(self, symbol):
-        method = "/v2/assets/"
-
-        r = requests.get(core_domain + method + symbol, headers=self.__get_auth_header())
-        code = r.status_code
-        if code == 200:
-            return True
-        elif code == 404:
-            return False
-        else:
-            print("????")
-            return False
+        # TODO: figure out what this actually does
+        self.api.get_asset(symbol)
 

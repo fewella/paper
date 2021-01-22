@@ -40,7 +40,7 @@ class Brain():
         }
         
         bars = self.core.get_data(symbol, timeframe, limit=n)
-        for bar in bars:
+        for bar in dict(bars)[symbol]:
             for t in moving_averages:
                 moving_averages[t] += bar[t]
         for t in moving_averages:
@@ -90,10 +90,10 @@ class Brain():
         positive_money_flow = 0
         negative_money_flow = 0
         prior_typical_price = -1
-        for bar in bars:
-            typical_price = (bar["h"] + bar["l"] + bar["c"]) / 3.0
+        for bar in dict(bars)[symbol]:
+            typical_price = (bar.h + bar.l + bar.c) / 3.0
             if prior_typical_price != -1:
-                raw_money_flow = typical_price * bar["v"]
+                raw_money_flow = typical_price * bar.v
                 if typical_price > prior_typical_price:
                     positive_money_flow += raw_money_flow
                 else:
@@ -145,8 +145,8 @@ class Brain():
         
         data = self.core.get_data(symbol, timeframe, limit=n)
         for i in range(1, len(data)):
-            today = data[i]['c']
-            prev = data[i-1]['c']
+            today = data[i].c
+            prev = data[i-1].c
 
             if today > prev:
                 ups.append(today - prev)

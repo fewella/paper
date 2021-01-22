@@ -117,15 +117,17 @@ class Platform:
 
 
     def update_buying_power_and_positions(self):
+        # TODO: completely revisit self.positions and its uses. at least make them clear. 
         self.buying_power = self.original_buying_power
-        for pos in self.core.get_my_assets():
-            self.buying_power -= (float(pos["qty"]) * float(pos["avg_entry_price"]))
-            self.positions[pos["symbol"]] = {
-                "qty" : pos["qty"],
-                "entry_price" : pos["avg_entry_price"]
+        for pos in self.core.get_positions():
+            self.buying_power -= (float(pos.qty) * float(pos.avg_entry_price))
+            self.positions[pos.symbol] = {
+                "qty" : pos.qty,
+                "entry_price" : pos.avg_entry_price
             }
 
 
     def get_curr_price(self, symbol):
-        return self.core.get_data(symbol, "1Min", limit=1)[0]["c"]
+        # TODO: THIS IS OBSOLETE SHOULD BE REMOVED SSTREAMING SHOULD BE USED INSTEAD :)!!
+        return self.core.get_data(symbol, "1Min", limit=1)[0].c
 

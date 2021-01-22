@@ -29,9 +29,11 @@ def custom():
     macd = b.MACD("GOOG", timeframe="1D")
     print("macd:", macd)
 
-    #c.place_order("GOOG", 5, side='buy')
+    c.place_order("GOOG", 5, side='buy')
+    #c.get_orders()
 
-    asyncio.run(c.init_stream())
+    # TODO: RUN THIS LINE IN ITS OWN THREAD - IT IS ENTIRELY BLOCKING UNLESS THERE IS A FATAL EXCEPTION. THOSE SHOULD BE CAUGHT AND HANDLED
+    #asyncio.run(c.init_stream())
 
 
 if __name__ == "__main__":
