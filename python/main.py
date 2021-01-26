@@ -21,6 +21,8 @@ TODO list:
 
 
 def custom():
+    ''' This is strictly for testing'''
+    
     c = Core()
     b = Brain(c)
     #mfi = b.MFI("AAPL", timeframe="1D")

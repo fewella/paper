@@ -21,7 +21,7 @@ class Brain():
         Calculates the n-day or n-minute moving average of a stock
 
         Parameters:
-            n: how many days: [1, 1000]
+            n: how many time intervals: [1, 1000]
             symbol: which stock
             timeframe: granularity of data: "day" or "minute" (optional)
             base: which aspect of a bar is used to calculate moving average ("o", "h", "l", or "c") (optional)
