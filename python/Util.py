@@ -1,6 +1,6 @@
 import urllib.request
 
-def retrieve_symbols():
+def retrieve_all_symbols():
     '''
     Gets current list of stock symbols traded on the market, and returns them as a list of strings
     Currently, just grabs NYSE. Future versions should allow choice of which exchange(s)

@@ -5,7 +5,6 @@ import asyncio
 import websockets
 import alpaca_trade_api as tradeapi
 
-# TODO: put URLS and other constants in another file
 ACCOUNT_STATUS_ACTIVE = "ACTIVE"
 
 #core_domain = "https://api.alpaca.markets"
@@ -26,7 +25,6 @@ async def on_second_bars(conn, channel, bar):
 class Core:
     '''
     Responsible for all API calls. Orders and all communication should be executed via Core. 
-    TODO: make all manual web requests through alpaca_trade_api
     '''
 
     def __init__(self):
@@ -85,11 +83,6 @@ class Core:
     
     
     def get_available_assets(self):
-        '''
-        Returns a list of tradable assests
-        TODO: Maybe use instead of nyse stock thing in Util.py
-        '''
-
         return self.api.list_assets()
     
     
@@ -106,11 +99,10 @@ class Core:
         '''
         data = self.data_api.get_barset(symbol, timeframe, limit, start=start, end=end, after=after, until=until)
 
-        # TODO: make this work for multiple symbols. Generally we want to make fewer requests.
-        # but only we should only be using this at setup and streaming the rest of the data. big monkahmm. 
+        # TODO: make this work for multiple symbols. This should probably ONLY BE CALLED ONCE
+
         return dict(data)[symbol]
 
     def test_asset(self, symbol):
-        # TODO: figure out what this actually does
         self.api.get_asset(symbol)
 

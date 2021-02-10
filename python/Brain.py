@@ -9,7 +9,7 @@ class Brain():
     Should make NO network calls - everything here should be local
 
     BIG TODO: There are many redundant calls to get_data(), these need to be consolidated/somehow streamlined. 
-        -> idea 1: in core, get_data() first checks an internal data structure, makes call to get data ONLY IF NEEDED
+        -> never make repeated calls to get_data() for different symbols. Make sure they can be done in 1 call. 
     """
 
     def __init__(self, c):

@@ -6,19 +6,22 @@ from Brain import Brain
 
 import Util
 
-class Platform:
-    # TODO: IMPLEMEMNT A BUY QUEUE -  stocks that I want to buy should be put on a stock . 
-    # If the buy queue ("wish list?") is not empty and I'm low on buying power, sell my postition with the highest RSI
+ORIGINAL_BUYING_POWER = 1000
 
-    # TODO: 
+class Platform:
     
     def __init__(self, c, b):
-        self.delta = 45
-        self.prospective_buy = Util.retrieve_symbols()
+        self.delta = 45 # seconds to wait between loops
+
+        # TODO only keep symbols with a trade volume >= 10^6 for the previous day
+        # Use Brain.get_data with timeframe=day, limit=1, ONLY ONE CALL SHOULD BE MADE TO get_data() - TRY TO GET ALL DATA IN AS FEW CALLS AS POSSIBLE
+        # performance bottleneck definitely seems to be web requests
+        self.prospective_buy = Util.retrieve_all_symbols()
+
         
         # Dictionary: symbol->{qty: int, entry_price: float}
         self.positions = {}
-        self.original_buying_power = 1000
+        self.original_buying_power = ORIGINAL_BUYING_POWER
         self.buying_power = self.original_buying_power
 
         self.core = c
@@ -48,6 +51,10 @@ class Platform:
         '''
         
         self.startup() 
+
+        # TODO Run this in its own thread - don't need to worry about returns or joining the thread. it just needs to run. 
+        # in the future we should join it in case it throws an exception, then relaunch. that's an endgame feature though. 
+        # asyncio.run(c.init_stream())
 
         while True:
 
@@ -82,9 +89,7 @@ class Platform:
     def buy_portion(self, symbol, price_per_share):
         # Buys as stock as portion of buying power
         # symbol: str: stock to buy
-        # price_per_share: float: 
-        # TODO: should have an actual way to find portion. For now, just use 0.25 of original buying power
-        # (this means we should only hold onto 4 different stocks at any point in time) 
+        # price_per_share: float: price per share lol
         
         portion = 0.20
         can_buy_exact = self.original_buying_power / price_per_share
@@ -125,9 +130,4 @@ class Platform:
                 "qty" : pos.qty,
                 "entry_price" : pos.avg_entry_price
             }
-
-
-    def get_curr_price(self, symbol):
-        # TODO: THIS IS OBSOLETE SHOULD BE REMOVED SSTREAMING SHOULD BE USED INSTEAD :)!!
-        return self.core.get_data(symbol, "1Min", limit=1)[0].c
 
