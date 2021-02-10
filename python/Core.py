@@ -88,20 +88,23 @@ class Core:
     
     def get_data(self, symbol, timeframe, limit=0, start=None, end=None, after=None, until=None):
         '''
-        Uses the bars method from ,
         Returns an array of dictionaries, where each dictionary contains the open ('o'), close ('c'), high ('h'), low ('l'), and volume ('v')
+        If symbol is a list, the described dictionaries are indexible 
+        EG: get_data(["AAPL", "GOOG"], "day")["AAPL"]
+        
 
-        symbol: str symbol to get data
+        symbol: str or list[str] of symbol(s) to get data
         timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D"
-        limit: max number of bars to return 
+        limit: max number of bars to return
         start: data must come at or after timestamp start (after: data must comes AFTER timestamp after)
         end: data must come at or before timestamp end (until: data must come BEFORE timestamp until)
         '''
         data = self.data_api.get_barset(symbol, timeframe, limit, start=start, end=end, after=after, until=until)
 
-        # TODO: make this work for multiple symbols. This should probably ONLY BE CALLED ONCE
-
-        return dict(data)[symbol]
+        if type(symbol) == str:
+            return dict(data)[symbol]
+        else:
+            return dict(data)
 
     def test_asset(self, symbol):
         self.api.get_asset(symbol)

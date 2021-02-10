@@ -25,19 +25,19 @@ def custom():
     
     c = Core()
     b = Brain(c)
+
     #mfi = b.MFI("AAPL", timeframe="1D")
     #print("mfi:", mfi)
 
     #macd = b.MACD("GOOG", timeframe="1D")
     #print("macd:", macd)
 
-    mov = b.n_moving_average(50, "AAPL", timeframe="day")
-    print("50 day mov avg: ", mov)
+    #mov = b.n_moving_average(50, "AAPL", timeframe="day")
+    #print("50 day mov avg: ", mov)
 
-    c.place_order("GOOG", 5, side='buy')
+    #c.place_order("GOOG", 5, side='buy')
     #c.get_orders()
 
-    # TODO: RUN THIS LINE IN ITS OWN THREAD - IT IS ENTIRELY BLOCKING UNLESS THERE IS A FATAL EXCEPTION. THOSE SHOULD BE CAUGHT AND HANDLED
     #asyncio.run(c.init_stream())
 
 
