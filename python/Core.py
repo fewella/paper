@@ -13,13 +13,10 @@ data_domain = "https://data.alpaca.markets"
 
 conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.markets')
 
+
 @conn.on(r'^AM$')
 async def on_minute_bars(conn, channel, bar):
-    print('bars', bar)
-
-
-@conn.on(r'^A$')
-async def on_second_bars(conn, channel, bar):
+    # TODO (Ajay) - update track_record with relevant information.
     print('bars', bar)
 
 class Core:
@@ -27,13 +24,19 @@ class Core:
     Responsible for all API calls. Orders and all communication should be executed via Core. 
     '''
 
+    # dict: symbol (str) -> list of 16 dictionaries represnting the 16 most recent rsi's.
+    # on minute bars (on_minute_bars() should implement this), this should be updated - last item removed, and incoming  appeneded. 
+    dynamic_rsi = {}
+    prev_gain = {} # symbol (str) -> previous gain (double), for rsi
+    prev_loss = {} # symbol (str) -> previous loss (double), for rsi
+
     def __init__(self):
         self.api = tradeapi.REST(base_url=core_domain)
         self.data_api = tradeapi.REST(base_url=data_domain)
 
 
     async def init_stream(self):
-        await conn.run(['trade_updates', 'AM.*', 'A.TSLA'])
+        await conn.run(['trade_updates', 'AM.*'])
         
 
     def test_auth(self):
@@ -105,6 +108,12 @@ class Core:
             return dict(data)[symbol]
         else:
             return dict(data)
+    
+
+    def get_high_volume_symbols(self, initial_list):
+        # TODO (eventually) technically determine good symbols to trade. Currently hardcoded list in Util. 
+        pass
+
 
     def test_asset(self, symbol):
         self.api.get_asset(symbol)

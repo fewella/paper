@@ -120,14 +120,14 @@ class Brain():
         return obv
     
 
-    def RSI(self, symbol, timeframe="1Min", n=15):
+    def RSI(self, symbol, timeframe="1Min", n=14):
         '''
         Calculates the relative stength index of a stock given a timeframe and length
         Returns a float between 0 and 100
 
         symbol: str symbol to get data
         timeframe: "minute", "1Min", "5Min", "15Min", "day", or "1D". If not provided, defaults to "1Min"
-        n: how many time periods to run RSI. If not provided, defaults to 15
+        n: how many time periods to run RSI. If not provided, defaults to 14
         '''
         ups = []
         downs = []

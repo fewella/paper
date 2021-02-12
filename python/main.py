@@ -26,6 +26,11 @@ def custom():
     c = Core()
     b = Brain(c)
 
+    print(c.get_data("AAPL", "day", limit=20))
+
+    rsi = b.RSI("ROKU", timeframe="15Min")
+    print(rsi)
+
     #mfi = b.MFI("AAPL", timeframe="1D")
     #print("mfi:", mfi)
 
