@@ -105,7 +105,10 @@ class Platform:
                         loss += (prev - curr)
                 gain /= 14
                 loss /= 14
-                rsi = 100 - 100 / (1 + gain/loss)
+                if loss == 0:
+                    rsi = 100
+                else:
+                    rsi = 100 - 100 / (1 + gain/loss)
                 Core.dynamic_rsi[symbol].append(rsi)
                 
 
