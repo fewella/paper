@@ -62,16 +62,11 @@ class Platform:
         if n * price_per_share <= self.buying_power:
             print("buying " + str(n) + " of " + symbol)
             res = self.core.place_order(symbol, n, "buy", order_type="market")
-        else:
-            if symbol not in self.wishlist:
-                self.wishlist.append(symbol)
         
         self.update_buying_power_and_positions()
     
 
     def sell_all(self, symbol, n, curr_price):
-        if symbol in self.wishlist:
-            self.wishlist.remove(symbol)
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc", limit_price=curr_price)
 
 

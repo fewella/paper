@@ -67,11 +67,11 @@ class Core:
     
     
     def cancel_order(self, order_id):
-        self.cancel_order(order_id)
+        self.api.cancel_order(order_id)
 
 
     def cancel_all_orders(self):
-        self.cancer_all_orders()
+        self.api.cancel_all_orders()
         
 
     def get_positions(self):
