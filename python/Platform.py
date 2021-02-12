@@ -82,30 +82,49 @@ class Platform:
         # This whole code block should be moved to Brain
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
-        initial_data = self.core.get_data(self.prospective_buy, "15Min", limit=250)
+        initial_data = self.core.get_data(self.prospective_buy, "day", limit=250)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
 
             bars = initial_data[symbol]
-            for i in range(0, 250-14):
-                
-                gain = 0
-                loss = 0
-                for j in range(1, 14):
-                    curr = bars[j+i].c
-                    prev = bars[j+i-1].c
-                    if curr > prev:
-                        gain += (curr - prev)
-                    else:
-                        loss += (prev - curr)
-                gain /= 14
-                loss /= 14
-                if loss == 0:
-                    rsi = 100
+            # Calculate the first RSI
+            gain = 0
+            loss = 0
+            for i in range(1, 14):
+                curr = bars[i].c
+                prev = bars[i-1].c
+                change = curr - prev
+                if change > 0:
+                    gain += change
                 else:
-                    rsi = 100 - 100 / (1 + gain/loss)
+                    loss -= change
+            gain /= 14
+            loss /= 14
+            if loss == 0:
+                rs = 1
+            else:
+                rs = gain/loss
+            rsi = 100 - 100 / (1 + rs)
+
+            # Then calculate continued RSIs
+            for i in range(15, 250):
+                curr = bars[i].c
+                prev = bars[i-1].c
+                change = curr - prev
+                if change > 0:
+                    gain = (gain * 13 + change) / 14
+                    loss = loss * 13/14
+                else:
+                    gain = gain * 13/14
+                    loss = (loss * 13 - change) / 14
+                rs = gain/loss
+                rsi = 100 - 100 / (1 + rs)
                 Core.dynamic_rsi[symbol].append(rsi)
-                
+
+
+
+        
+        print (Core.dynamic_rsi["AAL"])
 
         self.update_buying_power_and_positions()
 
