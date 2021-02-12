@@ -82,7 +82,7 @@ class Platform:
         # This whole code block should be moved to Brain
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
-        initial_data = self.core.get_data(self.prospective_buy, "day", limit=250)
+        initial_data = self.core.get_data(self.prospective_buy, "day", limit=300)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
 
@@ -107,7 +107,7 @@ class Platform:
             rsi = 100 - 100 / (1 + rs)
 
             # Then calculate continued RSIs
-            for i in range(15, 250):
+            for i in range(15, len(bars)):
                 curr = bars[i].c
                 prev = bars[i-1].c
                 change = curr - prev
@@ -120,11 +120,6 @@ class Platform:
                 rs = gain/loss
                 rsi = 100 - 100 / (1 + rs)
                 Core.dynamic_rsi[symbol].append(rsi)
-
-
-
-        
-        print (Core.dynamic_rsi["AAL"])
 
         self.update_buying_power_and_positions()
 
