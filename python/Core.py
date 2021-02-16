@@ -27,6 +27,9 @@ class Core:
     # dict: symbol (str) -> list of 16 dictionaries represnting the 16 most recent rsi's.
     # on minute bars (on_minute_bars() should implement this), this should be updated - last item removed, and incoming  appeneded. 
     dynamic_rsi = {}
+    
+    dynamic_rsi["GOOG"] = [10, 20, 42, 35, 12, 30]
+    
     prev_gain = {} # symbol (str) -> previous gain (double), for rsi
     prev_loss = {} # symbol (str) -> previous loss (double), for rsi
 

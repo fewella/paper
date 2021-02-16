@@ -37,6 +37,19 @@ class Platform:
     def thread_target(self):
         asyncio.run(self.core.init_stream())
     
+    
+    def should_buy(self, symbol):
+        # rsi_line hold a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
+        rsi_line = Core.dynmaic_rsi[symbol]
+
+
+    
+    def should_sell(self, symbol):
+        # rsi_line hold a list of rsi values. Should buy should return true if there is a MAXIMUM at the END of rsi_line
+        # [66, 73, 74, 74.5, 76, 70, 64]
+        rsi_line = Core.dynmaic_rsi[symbol]
+    
+    
     def run(self):
         '''
         Actually runs the trading algorithm. Loops through potential stocks to buy/sell every delta time.
@@ -46,10 +59,8 @@ class Platform:
         
         self.startup() 
 
-        # TODO Run this in its own thread - don't need to worry about returns or joining the thread. it just needs to run. 
-        # in the future we should join it in case it throws an exception, then relaunch. that's an endgame feature though. 
-        
-        
+
+
         t = threading.Thread(target=self.core.init_stream)
         t.start()
         
@@ -90,6 +101,7 @@ class Platform:
         # This whole code block should be moved to Brain
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
+        # TODO (AJAY) Make limit a parameter of the function
         initial_data = self.core.get_data(self.prospective_buy, "day", limit=300)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
