@@ -39,12 +39,14 @@ class Platform:
     
     
     def should_buy(self, symbol):
+        # TODO EUNICE
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
         rsi_line = Core.dynmaic_rsi[symbol]
 
 
     
     def should_sell(self, symbol):
+        # TODO EUNICE
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MAXIMUM at the END of rsi_line
         # [66, 73, 74, 74.5, 76, 70, 64]
         rsi_line = Core.dynmaic_rsi[symbol]
