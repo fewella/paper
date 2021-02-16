@@ -35,8 +35,14 @@ class Core:
         self.data_api = tradeapi.REST(base_url=data_domain)
 
 
-    async def init_stream(self):
-        await conn.run(['trade_updates', 'AM.*'])
+    def init_stream(self, channels = ['trade_updates']):
+        print("init stream enter!")
+        try:
+            conn.run(channels)
+        finally:
+            print("conn.run() error - restarting")
+            time.sleep(3)
+            self.init_stream(channels)
         
 
     def test_auth(self):

@@ -2,6 +2,7 @@ import time
 import math
 import threading
 import datetime
+import asyncio
 
 from Core import Core
 from Brain import Brain
@@ -33,6 +34,9 @@ class Platform:
         # self.last_bought = {}
     
     
+    def thread_target(self):
+        asyncio.run(self.core.init_stream())
+    
     def run(self):
         '''
         Actually runs the trading algorithm. Loops through potential stocks to buy/sell every delta time.
@@ -44,8 +48,12 @@ class Platform:
 
         # TODO Run this in its own thread - don't need to worry about returns or joining the thread. it just needs to run. 
         # in the future we should join it in case it throws an exception, then relaunch. that's an endgame feature though. 
-        # asyncio.run(c.init_stream())
-
+        
+        
+        t = threading.Thread(target=self.core.init_stream)
+        t.start()
+        
+        print("after thread!")
         
 
 
