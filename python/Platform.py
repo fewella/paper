@@ -129,6 +129,7 @@ class Platform:
             rsi = 100 - 100 / (1 + rs)
 
             # Then calculate continued RSIs
+            prev_close = -1
             for i in range(15, len(bars)):
                 curr = bars[i].c
                 prev = bars[i-1].c
@@ -141,8 +142,15 @@ class Platform:
                     loss = (loss * 13 - change) / 14
                 rs = gain/loss
                 rsi = 100 - 100 / (1 + rs)
+                prev_close = curr
+                
                 Core.dynamic_rsi[symbol].append(rsi)
-
+            
+            Core.prev_gain[symbol] = gain
+            Core.prev_loss[symbol] = loss
+            Core.prev_close[symbol] = prev_close
+        
+        Core.clock_start = time.time()
         self.update_buying_power_and_positions()
 
 

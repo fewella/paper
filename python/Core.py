@@ -19,23 +19,46 @@ conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.ma
 
 
 @conn.on(r'^AM.*')
-async def on_minute_bars(conn, channel, bar):
+async def on_minute_bars(conn, channel, bars):
     # TODO (Ajay) - update Core.dynamic_rsi with relevant information.
-    print('bars', bar)
-
+    symbol = bars.symbol
+    delta_time_seconds = int(int(bars.end) / 1000) - Core.clock_start
+    delta_time_mins = delta_time_seconds / 60
+    if delta_time_mins >= 15.0:
+        for bar in bars:
+            if int(int(int(bar.t) / 1000) - Core.clock_start) == 15:
+                curr = bar.c
+                change = curr - Core.prev_close[symbol]
+                if change > 0:
+                    Core.prev_gain[symbol] = (Core.prev_gain[symbol] * 13 + change) / 14
+                    Core.prev_loss[symbol] *= (13/14)
+                else:
+                    Core.prev_gain[symbol] *= (13/14)
+                    Core.prev_loss[symbol] = (Core.prev_loss[symbol] * 13 - change) / 14
+                
+                rs  = Core.prev_gain[symbol] / Core.prev_loss[symbol]
+                rsi = 100 - 100 / (1 + rs)
+                Core.prev_close[symbol] = curr
+                
+                Core.dynamic_rsi[symbol].append(rsi)
+                break
+    print("calculated new RSI for ", symbol, "recent list: ", Core.dynamic_rsi[symbol][-10:])
+    
 class Core:
     '''
     Responsible for all API calls. Orders and all communication should be executed via Core. 
     '''
 
+    # time when startup() completes, from epoch in seconds
+    clock_start = -1
+
     # dict: symbol (str) -> list of 16 dictionaries represnting the 16 most recent rsi's.
     # on minute bars (on_minute_bars() should implement this), this should be updated - last item removed, and incoming  appeneded. 
     dynamic_rsi = {}
     
-    dynamic_rsi["GOOG"] = [10, 20, 42, 35, 12, 30]
-
-    prev_gain = {} # symbol (str) -> previous gain (double), for rsi
-    prev_loss = {} # symbol (str) -> previous loss (double), for rsi
+    prev_gain = {} # symbol (str) -> previous gain (float), for rsi
+    prev_loss = {} # symbol (str) -> previous loss (float), for rsi
+    prev_close = {} # symbol (str) -> previous close (float), for rsi
 
     def __init__(self):
         self.api = tradeapi.REST(base_url=core_domain)

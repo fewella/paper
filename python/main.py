@@ -44,13 +44,11 @@ def custom():
     #c.place_order("GOOG", 5, side='buy')
     #c.get_orders()
 
-    #asyncio.run(c.init_stream())
-
 
 if __name__ == "__main__":
 
     nest_asyncio.apply()
-    logging.basicConfig(stream=stderr, level=logging.DEBUG)
+    logging.basicConfig(stream=stderr, level=logging.INFO)
     
     argc = len(argv)
     if argc > 2:
