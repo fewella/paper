@@ -1,8 +1,10 @@
-import requests
 import json
-
+import time
 import asyncio
+import logging
+import requests
 import websockets
+
 import alpaca_trade_api as tradeapi
 
 ACCOUNT_STATUS_ACTIVE = "ACTIVE"
@@ -14,9 +16,9 @@ data_domain = "https://data.alpaca.markets"
 conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.markets')
 
 
-@conn.on(r'^AM$')
+@conn.on(r'^AM.*')
 async def on_minute_bars(conn, channel, bar):
-    # TODO (Ajay) - update track_record with relevant information.
+    # TODO (Ajay) - update Core.dynamic_rsi with relevant information.
     print('bars', bar)
 
 class Core:
@@ -29,7 +31,7 @@ class Core:
     dynamic_rsi = {}
     
     dynamic_rsi["GOOG"] = [10, 20, 42, 35, 12, 30]
-    
+
     prev_gain = {} # symbol (str) -> previous gain (double), for rsi
     prev_loss = {} # symbol (str) -> previous loss (double), for rsi
 
@@ -38,9 +40,10 @@ class Core:
         self.data_api = tradeapi.REST(base_url=data_domain)
 
 
-    def init_stream(self, channels = ['trade_updates']):
-        print("init stream enter!")
+    def init_stream(self):
+        logging.info("Initializing data streaming via WebSockets...")
         try:
+            channels = ['trade_updates'] + Util.get_channels()
             conn.run(channels)
         finally:
             print("conn.run() error - restarting")

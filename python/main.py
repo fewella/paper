@@ -1,4 +1,4 @@
-from sys import argv
+from sys import argv, stderr
 
 from Core import Core
 from Brain import Brain
@@ -6,6 +6,7 @@ from Platform import Platform
 
 import Util
 
+import logging
 import asyncio
 import nest_asyncio
 
@@ -49,6 +50,7 @@ def custom():
 if __name__ == "__main__":
 
     nest_asyncio.apply()
+    logging.basicConfig(stream=stderr, level=logging.DEBUG)
     
     argc = len(argv)
     if argc > 2:

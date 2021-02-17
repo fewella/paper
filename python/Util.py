@@ -11,6 +11,12 @@ def retrieve_all_symbols():
     return [line.split("|")[0] for line in urllib.request.urlopen(nyse_symbol_url).read().decode().split('\r\n')][1:-2]
 
 
+def get_channels():
+    channels = []
+    for symbol in retrieve_hand_picked_symbols():
+        channels.append('AM.' + symbol)
+
+
 def retrieve_hand_picked_symbols():
     return [	
             'INTC',
