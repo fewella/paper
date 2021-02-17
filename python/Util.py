@@ -15,6 +15,7 @@ def get_channels():
     channels = []
     for symbol in retrieve_hand_picked_symbols():
         channels.append('AM.' + symbol)
+    return channels
 
 
 def retrieve_hand_picked_symbols():

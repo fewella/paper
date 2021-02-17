@@ -5,6 +5,8 @@ import logging
 import requests
 import websockets
 
+import Util
+
 import alpaca_trade_api as tradeapi
 
 ACCOUNT_STATUS_ACTIVE = "ACTIVE"
@@ -42,8 +44,8 @@ class Core:
 
     def init_stream(self):
         logging.info("Initializing data streaming via WebSockets...")
+        channels = ['trade_updates'] + Util.get_channels()
         try:
-            channels = ['trade_updates'] + Util.get_channels()
             conn.run(channels)
         finally:
             print("conn.run() error - restarting")
