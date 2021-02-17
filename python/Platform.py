@@ -3,6 +3,7 @@ import math
 import threading
 import datetime
 import asyncio
+import logging
 
 from Core import Core
 from Brain import Brain
@@ -61,12 +62,10 @@ class Platform:
         
         self.startup() 
 
-
-
         t = threading.Thread(target=self.core.init_stream)
         t.start()
         
-        print("after thread!")
+        logging.info("WebSockets live")
         
 
 
@@ -92,19 +91,19 @@ class Platform:
 
 
     def startup(self):
-        print("Testing auth...")
+        logging.info("Testing authorization...")
         if not self.core.test_auth():
-            print("Could not authenticate. Exiting with code 1...")
+            logging.error("Could not authenticate. Exiting with code 1...")
             exit(1)
         else:
-            print("Auth success!")
+            logging.info("Authorization successful")
 
         # TODO: there are a LOT of magic numbers here - they should be put into globals or class vars.
         # This whole code block should be moved to Brain
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
         # TODO (AJAY) Make limit a parameter of the function
-        initial_data = self.core.get_data(self.prospective_buy, "day", limit=300)
+        initial_data = self.core.get_data(self.prospective_buy, "15Min", limit=300)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
 
@@ -130,6 +129,7 @@ class Platform:
 
             # Then calculate continued RSIs
             prev_close = -1
+            prev_time = -1
             for i in range(15, len(bars)):
                 curr = bars[i].c
                 prev = bars[i-1].c
@@ -143,13 +143,14 @@ class Platform:
                 rs = gain/loss
                 rsi = 100 - 100 / (1 + rs)
                 prev_close = curr
-                
+                prev_time = bars[i].t.value / 10**9
                 Core.dynamic_rsi[symbol].append(rsi)
             
             Core.prev_gain[symbol] = gain
             Core.prev_loss[symbol] = loss
+            Core.prev_time[symbol] = prev_time
             Core.prev_close[symbol] = prev_close
-        
+
         Core.clock_start = time.time()
         self.update_buying_power_and_positions()
 
