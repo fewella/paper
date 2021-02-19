@@ -24,8 +24,8 @@ async def on_minute_bars(conn, channel, bar):
     symbol = bar.symbol
     epsilon = 30
     bar_time = bar.end.value / 10**9
-    time_range_floor = (60 * 15 - epsilon) + Core.prev_time[symbol]
-    time_range_ceil  = (60 * 15 + epsilon) + Core.prev_time[symbol]
+    time_range_floor = (60 * 5 - epsilon) + Core.prev_time[symbol]
+    time_range_ceil  = (60 * 5 + epsilon) + Core.prev_time[symbol]
     if time_range_floor < bar_time and bar_time < time_range_ceil:
         curr = bar.close
         change = curr - Core.prev_close[symbol]
@@ -38,8 +38,9 @@ async def on_minute_bars(conn, channel, bar):
         
         rs  = Core.prev_gain[symbol] / Core.prev_loss[symbol]
         rsi = 100 - 100 / (1 + rs)
+
         Core.prev_close[symbol] = curr
-        
+        Core.prev_time[symbol] = bar_time
         Core.dynamic_rsi[symbol].append(rsi)
         print("added to dynmic rsi for ", symbol, "! recent list: ", Core.dynamic_rsi[symbol][-10:])
     else:

@@ -14,8 +14,9 @@ ORIGINAL_BUYING_POWER = 1000
 
 class Platform:
     
-    def __init__(self, c, b):
-        self.delta = 45 # seconds to wait between loops
+    def __init__(self, c, b, time_period="5Min"):
+        self.time_period = time_period
+        self.delta = 45 # seconds to wait between loops TODO this should be related to time_period
         self.prospective_buy = []
         
         # Dictionary: symbol->{qty: int, entry_price: float}
@@ -44,13 +45,27 @@ class Platform:
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
         rsi_line = Core.dynmaic_rsi[symbol]
 
+        epsilon = 0.5 # tolerance for upward or downward movements
+        
+        # look at the past 7 values except for the last two:
+        curr_line = rsi_line[-10:-3]
+        
+        for i in range(1, len(curr_line)):
+            curr = curr_line[i]
+            prev = curr_line[i-1]
+            if curr > prev + epsilon:
+                # probabily increasing, we dont care
+                return false
+        if rsi_line[-2] > rsi_line[-3] and rsi_line[-1] > rsi_line[-2]:
+            return true
+
 
     
     def should_sell(self, symbol):
         # TODO EUNICE
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MAXIMUM at the END of rsi_line
-        # [66, 73, 74, 74.5, 76, 70, 64]
         rsi_line = Core.dynmaic_rsi[symbol]
+        return should_buy([-x for x in rsi_line])
     
     
     def run(self):
@@ -90,7 +105,7 @@ class Platform:
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc", limit_price=curr_price)
 
 
-    def startup(self):
+    def startup(self, n_time_periods=300):
         logging.info("Testing authorization...")
         if not self.core.test_auth():
             logging.error("Could not authenticate. Exiting with code 1...")
@@ -103,7 +118,7 @@ class Platform:
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
         # TODO (AJAY) Make limit a parameter of the function
-        initial_data = self.core.get_data(self.prospective_buy, "15Min", limit=300)
+        initial_data = self.core.get_data(self.prospective_buy, self.time_period, limit=n_time_periods)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
 
