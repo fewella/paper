@@ -63,6 +63,7 @@ class Core:
     prev_close = {} # symbol (str) -> previous close (float), for rsi
     prev_time = {} # symbol (str) -> last time recorded (int), for bookkeeping
 
+    fresh = {} # symbol (str) -> bool: whether new data is available for analysis
 
     def __init__(self):
         self.api = tradeapi.REST(base_url=core_domain)
@@ -90,7 +91,7 @@ class Core:
         return self.api.list_orders()
 
 
-    def place_order(self, symbol, n, side="sell", order_type="market", time_in_force="day", limit_price=None, stop_price=None, extended_hours=False):
+    def place_order(self, symbol, n, side, order_type="market", time_in_force="day", limit_price=None, stop_price=None, extended_hours=False):
         '''
         Places an order on the market. 
         Requires symbol (str), n (int)

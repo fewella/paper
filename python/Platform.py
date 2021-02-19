@@ -16,7 +16,7 @@ class Platform:
     
     def __init__(self, c, b, time_period="5Min"):
         self.time_period = time_period
-        self.delta = 45 # seconds to wait between loops TODO this should be related to time_period
+        self.delta = 60 # seconds to wait between loops TODO this should be related to time_period
         self.prospective_buy = []
         
         # Dictionary: symbol->{qty: int, entry_price: float}
@@ -40,10 +40,15 @@ class Platform:
         asyncio.run(self.core.init_stream())
     
     
-    def should_buy(self, symbol):
+    def should_buy(self, symbol, line=None):
         # TODO EUNICE
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
-        rsi_line = Core.dynmaic_rsi[symbol]
+        
+        rsi_line = []
+        if line == None:
+            rsi_line = Core.dynamic_rsi[symbol]
+        else:
+            rsi_line = line
 
         epsilon = 0.5 # tolerance for upward or downward movements
         
@@ -55,17 +60,19 @@ class Platform:
             prev = curr_line[i-1]
             if curr > prev + epsilon:
                 # probabily increasing, we dont care
-                return false
+                return False
         if rsi_line[-2] > rsi_line[-3] and rsi_line[-1] > rsi_line[-2]:
-            return true
+            return True
+        
+        return False
 
 
     
-    def should_sell(self, symbol):
+    def should_sell(self, symbol, line=None):
         # TODO EUNICE
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MAXIMUM at the END of rsi_line
-        rsi_line = Core.dynmaic_rsi[symbol]
-        return should_buy([-x for x in rsi_line])
+        rsi_line = Core.dynamic_rsi[symbol]
+        return self.should_buy(symbol, line=[-x for x in rsi_line])
     
     
     def run(self):
@@ -81,13 +88,21 @@ class Platform:
         t.start()
         
         logging.info("WebSockets live")
+
+        while True:
+            for symbol in self.prospective_buy:
+                if self.should_buy(symbol):
+                    self.buy_portion(symbol)
+                elif self.should_sell(symbol):
+                    self.sell_all(symbol)
+
+            time.sleep(self.delta)
         
 
 
-    def buy_portion(self, symbol, price_per_share):
+    def buy_portion(self, symbol):
         # Buys as stock as portion of buying power
         # symbol: str: stock to buy
-        # price_per_share: float: price per share lol
         
         portion = 0.20
         can_buy_exact = self.original_buying_power / price_per_share
@@ -101,8 +116,8 @@ class Platform:
         self.update_buying_power_and_positions()
     
 
-    def sell_all(self, symbol, n, curr_price):
-        self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc", limit_price=curr_price)
+    def sell_all(self, symbol, n):
+        self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc")
 
 
     def startup(self, n_time_periods=300):
@@ -165,6 +180,7 @@ class Platform:
             Core.prev_loss[symbol] = loss
             Core.prev_time[symbol] = prev_time
             Core.prev_close[symbol] = prev_close
+            Core.fresh[symbol] = True
 
         Core.clock_start = time.time()
         self.update_buying_power_and_positions()
