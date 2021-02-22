@@ -1,4 +1,4 @@
-from sys import argv, stderr
+from sys import stderr
 
 from Core import Core
 from Brain import Brain
@@ -8,6 +8,7 @@ import Util
 
 import logging
 import asyncio
+import argparse
 import nest_asyncio
 
 '''
@@ -48,20 +49,26 @@ def custom():
 if __name__ == "__main__":
 
     nest_asyncio.apply()
-    logging.basicConfig(stream=stderr, level=logging.INFO)
     
-    argc = len(argv)
-    if argc > 2:
-        print("Usage: python main.py [behavior]")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--custom", help="run the custom function, and exit - for testing",
+                                    action="store_true")
+    parser.add_argument("-o", "--output", help="store all output in the specified file")
+    args = parser.parse_args()
+
+    if args.custom:
+        custom()
+        exit()
     
-    if argc == 2:
-        if argv[1] == "--custom":
-            custom()
-            
-    else:
-        core = Core()
-        brain = Brain(core)
-        
-        platform = Platform(core, brain)
-        platform.run()
+    if args.output:
+        logging.basicConfig(filename=args.output, level=logging.INFO)
+    else: 
+        logging.basicConfig(stream=stderr, level=logging.INFO)
+
+
+    core = Core()
+    brain = Brain(core)
+    
+    platform = Platform(core, brain)
+    platform.run()
     

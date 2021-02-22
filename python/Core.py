@@ -20,7 +20,6 @@ conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.ma
 
 @conn.on(r'^AM.*')
 async def on_minute_bars(conn, channel, bar):
-    # TODO (Ajay) - update Core.dynamic_rsi with relevant information.
     symbol = bar.symbol
     epsilon = 30
     bar_time = bar.end.value / 10**9
@@ -42,9 +41,9 @@ async def on_minute_bars(conn, channel, bar):
         Core.prev_close[symbol] = curr
         Core.prev_time[symbol] = bar_time
         Core.dynamic_rsi[symbol].append(rsi)
-        print("added to dynmic rsi for ", symbol, "! recent list: ", Core.dynamic_rsi[symbol][-10:])
+        logging.info("added to dynmic rsi for " + symbol + "! recent list: " + str(Core.dynamic_rsi[symbol][-10:]))
     else:
-        print("Not correct time interval, do nothing :)")
+        logging.info("Not correct time interval, do nothing :)")
 
     
 class Core:

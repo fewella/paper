@@ -116,7 +116,8 @@ class Platform:
         self.update_buying_power_and_positions()
     
 
-    def sell_all(self, symbol, n):
+    def sell_all(self, symbol):
+        n = self.postitions[symbol].qty
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc")
 
 
