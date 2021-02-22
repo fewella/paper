@@ -105,11 +105,14 @@ class Platform:
         # symbol: str: stock to buy
         
         portion = 0.20
-        can_buy_exact = self.original_buying_power / price_per_share
+        price = self.core.get_price(symbol)
+        print("price of", symbol, "is ", price)
+        can_buy_exact = self.original_buying_power / price
         print(can_buy_exact)
         n = math.floor(can_buy_exact * portion)
+        print(n)
 
-        if n * price_per_share <= self.buying_power:
+        if n * price <= self.buying_power:
             print("buying " + str(n) + " of " + symbol)
             res = self.core.place_order(symbol, n, "buy", order_type="market")
         
@@ -117,7 +120,7 @@ class Platform:
     
 
     def sell_all(self, symbol):
-        n = self.postitions[symbol].qty
+        n = self.positions[symbol].qty
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc")
 
 
@@ -176,6 +179,7 @@ class Platform:
                 prev_close = curr
                 prev_time = bars[i].t.value / 10**9
                 Core.dynamic_rsi[symbol].append(rsi)
+                Core.most_recent_price[symbol] = curr
             
             Core.prev_gain[symbol] = gain
             Core.prev_loss[symbol] = loss

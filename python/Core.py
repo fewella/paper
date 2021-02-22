@@ -21,6 +21,8 @@ conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.ma
 @conn.on(r'^AM.*')
 async def on_minute_bars(conn, channel, bar):
     symbol = bar.symbol
+    Core.most_recent_price[symbol] = bar.close
+
     epsilon = 30
     bar_time = bar.end.value / 10**9
     time_range_floor = (60 * 5 - epsilon) + Core.prev_time[symbol]
@@ -41,6 +43,7 @@ async def on_minute_bars(conn, channel, bar):
         Core.prev_close[symbol] = curr
         Core.prev_time[symbol] = bar_time
         Core.dynamic_rsi[symbol].append(rsi)
+        print("exciting stuff?")
         logging.info("added to dynmic rsi for " + symbol + "! recent list: " + str(Core.dynamic_rsi[symbol][-10:]))
     else:
         logging.info("Not correct time interval, do nothing :)")
@@ -64,6 +67,8 @@ class Core:
 
     fresh = {} # symbol (str) -> bool: whether new data is available for analysis
 
+    most_recent_price = {} # symbol(str) -> float, most recent price of the given asset
+
     def __init__(self):
         self.api = tradeapi.REST(base_url=core_domain)
         self.data_api = tradeapi.REST(base_url=data_domain)
@@ -84,6 +89,10 @@ class Core:
     def test_auth(self):
         account = self.api.get_account()
         return account.status == ACCOUNT_STATUS_ACTIVE
+
+    
+    def get_price(self, symbol):
+        return Core.most_recent_price[symbol]
 
 
     def get_orders(self):
