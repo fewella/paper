@@ -18,32 +18,19 @@ No argument run will run the platform and simulation with all defaults.
 TODO list:
     -> could add parameters for time period over which signals are calculated
     -> give preference to certain symbols
-    -> etc...
 '''
 
 
 def custom():
-    ''' This is strictly for testing'''
+    ''' This is strictly for testing, invoke with -c, --custom'''
     
     c = Core()
     b = Brain(c)
 
     print(c.get_data("AAPL", "day", limit=20))
-
+    
     rsi = b.RSI("ROKU", timeframe="15Min")
     print(rsi)
-
-    #mfi = b.MFI("AAPL", timeframe="1D")
-    #print("mfi:", mfi)
-
-    #macd = b.MACD("GOOG", timeframe="1D")
-    #print("macd:", macd)
-
-    #mov = b.n_moving_average(50, "AAPL", timeframe="day")
-    #print("50 day mov avg: ", mov)
-
-    #c.place_order("GOOG", 5, side='buy')
-    #c.get_orders()
 
 
 if __name__ == "__main__":
@@ -51,19 +38,30 @@ if __name__ == "__main__":
     nest_asyncio.apply()
     
     parser = argparse.ArgumentParser()
-    parser.add_argument("-c", "--custom", help="run the custom function, and exit - for testing",
+    parser.add_argument("-c", "--custom", help="run the custom function and exit - for testing",
+                                    action="store_true")
+    parser.add_argument("-d", "--debug", help="log debug messages",
+                                    action="store_true")
+    parser.add_argument("-q", "--quiet", help="suppresses all output except critical, overrides debug",
                                     action="store_true")
     parser.add_argument("-o", "--output", help="store all output in the specified file")
+    parser.add_argument("-t", "--timeframe", help="specify the timeframe over which to calculate signals and make trades, in MINUTES - [1, 1440]")
     args = parser.parse_args()
 
     if args.custom:
         custom()
         exit()
     
+    l = logging.INFO
+    if args.debug:
+        l = logging.DEBUG
+    if args.quiet:
+        l = logging.CRITICAL
+
     if args.output:
-        logging.basicConfig(filename=args.output, level=logging.INFO)
+        logging.basicConfig(filename=args.output, level=l)
     else: 
-        logging.basicConfig(stream=stderr, level=logging.INFO)
+        logging.basicConfig(stream=stderr, level=l)
 
 
     core = Core()
