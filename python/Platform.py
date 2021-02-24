@@ -10,17 +10,42 @@ from Brain import Brain
 
 import Util
 
-ORIGINAL_BUYING_POWER = 1000
+ORIGINAL_BUYING_POWER = 10000
+
+class Holding:
+        def __init__(self, n, enter):
+            self.qty = n
+            self.entry_price = enter
+        
+        def get_qty(self):
+            return self.qty
+        
+        def get_entry_price(self):
+            return self.entry_price
+        
+        def reset(self):
+            self.n = 0
+            self.entry_price = -1
+
 
 class Platform:
-    
-    def __init__(self, c, b, time_period="5Min"):
-        self.time_period = time_period
-        self.delta = 60 # seconds to wait between loops TODO this should be related to time_period
+
+    def __init__(self, c, b, time_period=5):
+        self.time_period_minutes = time_period
+        self.time_period = None
+        if time_period == 1:
+            self.time_period = "1Min"
+        if time_period == 5:
+            self.time_period = "5Min"
+        if time_period == 15:
+            self.time_period = "15Min"
+        if time_period == 1440:
+            self.time_period = "1Day"
+
+        self.delta = 60 # seconds to wait between loops TODO this could be related to time_period
         self.prospective_buy = []
         
-        # Dictionary: symbol->{qty: int, entry_price: float}
-        self.positions = {}
+        self.positions = {} # symbol (str) -> Holding
         self.original_buying_power = ORIGINAL_BUYING_POWER
         self.buying_power = self.original_buying_power
 
@@ -30,15 +55,6 @@ class Platform:
         self.overbought = 70.0
         self.oversold   = 30.0
 
-        # do not hold onto a stock for too long - UNLESS: it remains very underbought or is increasing in price quickly
-        # for now, just sell off stocks doing well that I've held onto for a while to speed up the algorithm
-        # last_bought: dict: symbol (str) -> (dict: "price" -> int, "time" -> int)
-        # self.last_bought = {}
-    
-    
-    def thread_target(self):
-        asyncio.run(self.core.init_stream())
-    
     
     def should_buy(self, symbol, line=None):
         # TODO EUNICE
@@ -91,14 +107,19 @@ class Platform:
 
         while True:
             for symbol in self.prospective_buy:
-                if self.should_buy(symbol):
-                    self.buy_portion(symbol)
-                elif self.should_sell(symbol):
-                    self.sell_all(symbol)
+                if Core.fresh[symbol]:
+                    if self.should_buy(symbol):
+                        self.buy_portion(symbol)
+                    elif self.owns_position(symbol) and self.should_sell(symbol):
+                        self.sell_all(symbol)
+            Core.fresh[symbol] = False
 
             time.sleep(self.delta)
         
 
+    def owns_position(self, symbol):
+        return symbol in self.positions and self.positions[symbol].qty > 0
+            
 
     def buy_portion(self, symbol):
         # Buys as stock as portion of buying power
@@ -106,15 +127,14 @@ class Platform:
         
         portion = 0.20
         price = self.core.get_price(symbol)
-        print("price of", symbol, "is ", price)
+        logging.debug("price of", symbol, "is ", price)
         can_buy_exact = self.original_buying_power / price
-        print(can_buy_exact)
         n = math.floor(can_buy_exact * portion)
-        print(n)
 
         if n * price <= self.buying_power:
-            print("buying " + str(n) + " of " + symbol)
+            logging.info("buying " + str(n) + " of " + symbol)
             res = self.core.place_order(symbol, n, "buy", order_type="market")
+            self.positions[symbol] = Holding(n, price)
         
         self.update_buying_power_and_positions()
     
@@ -122,9 +142,10 @@ class Platform:
     def sell_all(self, symbol):
         n = self.positions[symbol].qty
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc")
+        self.positions[symbol].reset()
 
 
-    def startup(self, n_time_periods=300):
+    def startup(self, time_periods=300):
         logging.info("Testing authorization...")
         if not self.core.test_auth():
             logging.error("Could not authenticate. Exiting with code 1...")
@@ -133,11 +154,10 @@ class Platform:
             logging.info("Authorization successful")
 
         # TODO: there are a LOT of magic numbers here - they should be put into globals or class vars.
-        # This whole code block should be moved to Brain
+        # TODO: this whole code block should be moved to Brain
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
-        # TODO (AJAY) Make limit a parameter of the function
-        initial_data = self.core.get_data(self.prospective_buy, self.time_period, limit=n_time_periods)
+        initial_data = self.core.get_data(self.prospective_buy, self.time_period, limit=time_periods)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
 
@@ -194,9 +214,10 @@ class Platform:
     def update_buying_power_and_positions(self):
         self.buying_power = self.original_buying_power
         for pos in self.core.get_positions():
-            self.buying_power -= (float(pos.qty) * float(pos.avg_entry_price))
-            self.positions[pos.symbol] = {
-                "qty" : pos.qty,
-                "entry_price" : pos.avg_entry_price
-            }
+            n = int(pos.qty)
+            price = float(pos.avg_entry_price)
+            cost = n * price
+
+            self.buying_power -= cost
+            self.positions[pos.symbol] = Holding(n, price)
 

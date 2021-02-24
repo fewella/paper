@@ -43,10 +43,10 @@ async def on_minute_bars(conn, channel, bar):
         Core.prev_close[symbol] = curr
         Core.prev_time[symbol] = bar_time
         Core.dynamic_rsi[symbol].append(rsi)
-        print("exciting stuff?")
-        logging.info("added to dynmic rsi for " + symbol + "! recent list: " + str(Core.dynamic_rsi[symbol][-10:]))
+        Core.fresh[symbol] = True
+        logging.debug("Added to dynmic rsi for " + symbol + ". Recent list: " + str(Core.dynamic_rsi[symbol][-10:]))
     else:
-        logging.info("Not correct time interval, do nothing :)")
+        logging.debug("Not flush time interval. Update price and do nothing :)")
 
     
 class Core:
@@ -80,8 +80,8 @@ class Core:
         try:
             conn.run(channels)
         except Exception as e:
-            print("conn.run() error - restarting")
-            print(e)
+            logging.error("conn.run() error - restarting")
+            logging.error(str(e))
             time.sleep(3)
             self.init_stream(channels)
         

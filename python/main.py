@@ -62,11 +62,22 @@ if __name__ == "__main__":
         logging.basicConfig(filename=args.output, level=l)
     else: 
         logging.basicConfig(stream=stderr, level=l)
-
-
+    
+    time_period = None
+    minutes = 5 # Default, should probably be coded somewhere magic number bad
+    if args.timeframe:
+        try:
+            minutes = int(args.timeframe)
+        except:
+            logging.critical("Please enter an integer for minutes. Exiting....")
+            exit()
+        if minutes < 1 or minutes > 1440:
+            logging.critical("Please enter a number of minutes between 1 and 1440. Exiting....")
+            exit()
+    
     core = Core()
     brain = Brain(core)
     
-    platform = Platform(core, brain)
+    platform = Platform(core, brain, time_period=minutes)
     platform.run()
     
