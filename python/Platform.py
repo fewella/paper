@@ -12,24 +12,20 @@ import Util
 
 ORIGINAL_BUYING_POWER = 10000
 
-class Holding:
-        def __init__(self, n, enter):
-            self.qty = n
-            self.entry_price = enter
-        
-        def get_qty(self):
-            return self.qty
-        
-        def get_entry_price(self):
-            return self.entry_price
-        
-        def reset(self):
-            self.n = 0
-            self.entry_price = -1
-
-
 class Platform:
 
+    class Holding:
+        def __init__(self, n, entry):
+            self.qty = n
+            self.entry_price = entry
+        def get_qty(self):
+            return self.qty
+        def get_entry_price:
+            return self.entry_price
+        def reset:
+            self.qty = 0
+            self.entry_price = -1
+    
     def __init__(self, c, b, time_period=5):
         self.time_period_minutes = time_period
         self.time_period = None
@@ -41,6 +37,7 @@ class Platform:
             self.time_period = "15Min"
         if time_period == 1440:
             self.time_period = "1Day"
+        #self.time_period_string = self.determine_time_period(self.time_period_minutes)
 
         self.delta = 60 # seconds to wait between loops TODO this could be related to time_period
         self.prospective_buy = []
@@ -110,16 +107,13 @@ class Platform:
                 if Core.fresh[symbol]:
                     if self.should_buy(symbol):
                         self.buy_portion(symbol)
-                    elif self.owns_position(symbol) and self.should_sell(symbol):
+                    elif self.should_sell(symbol):
                         self.sell_all(symbol)
             Core.fresh[symbol] = False
 
             time.sleep(self.delta)
         
 
-    def owns_position(self, symbol):
-        return symbol in self.positions and self.positions[symbol].qty > 0
-            
 
     def buy_portion(self, symbol):
         # Buys as stock as portion of buying power
@@ -134,7 +128,6 @@ class Platform:
         if n * price <= self.buying_power:
             logging.info("buying " + str(n) + " of " + symbol)
             res = self.core.place_order(symbol, n, "buy", order_type="market")
-            self.positions[symbol] = Holding(n, price)
         
         self.update_buying_power_and_positions()
     
@@ -142,6 +135,7 @@ class Platform:
     def sell_all(self, symbol):
         n = self.positions[symbol].qty
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc")
+        # TODO check if successful
         self.positions[symbol].reset()
 
 
@@ -217,7 +211,6 @@ class Platform:
             n = int(pos.qty)
             price = float(pos.avg_entry_price)
             cost = n * price
-
             self.buying_power -= cost
             self.positions[pos.symbol] = Holding(n, price)
 
