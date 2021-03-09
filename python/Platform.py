@@ -12,20 +12,21 @@ import Util
 
 ORIGINAL_BUYING_POWER = 10000
 
-class Platform:
-
-    class Holding:
+class Holding:
         def __init__(self, n, entry):
             self.qty = n
             self.entry_price = entry
         def get_qty(self):
             return self.qty
-        def get_entry_price:
+        def get_entry_price(self):
             return self.entry_price
-        def reset:
+        def reset(self):
             self.qty = 0
             self.entry_price = -1
-    
+
+
+class Platform:
+        
     def __init__(self, c, b, time_period=5):
         self.time_period_minutes = time_period
         self.time_period = None
@@ -84,8 +85,24 @@ class Platform:
     def should_sell(self, symbol, line=None):
         # TODO EUNICE
         # rsi_line hold a list of rsi values. Should buy should return true if there is a MAXIMUM at the END of rsi_line
-        rsi_line = Core.dynamic_rsi[symbol]
-        return self.should_buy(symbol, line=[-x for x in rsi_line])
+        rsi_line = []
+        if line == None:
+            rsi_line = Core.dynamic_rsi[symbol]
+        else:
+            rsi_line = line
+        
+        epsilon = 0.6 # slightly higher tolerance
+
+        curr_line = rsi_line[-8:-3]
+        for i in range(1, len(curr_line)):
+            curr = curr_line[i]
+            prev = curr_line[i-1]
+            if curr < prev + epsilon:
+                return False
+        if rsi_line[-2] < rsi_line[-3] and rsi_line[-1] < rsi_line[-2]:
+            return True
+
+        return False
     
     
     def run(self):
@@ -106,13 +123,17 @@ class Platform:
             for symbol in self.prospective_buy:
                 if Core.fresh[symbol]:
                     if self.should_buy(symbol):
+                        logging.info ("Found dip in " + symbol)
                         self.buy_portion(symbol)
-                    elif self.should_sell(symbol):
+                    elif self.has_position(symbol) and self.should_sell(symbol):
                         self.sell_all(symbol)
             Core.fresh[symbol] = False
 
             time.sleep(self.delta)
         
+    
+    def has_position(self, symbol):
+        return symbol in self.positions
 
 
     def buy_portion(self, symbol):
@@ -188,8 +209,12 @@ class Platform:
                 else:
                     gain = gain * 13/14
                     loss = (loss * 13 - change) / 14
-                rs = gain/loss
-                rsi = 100 - 100 / (1 + rs)
+                rsi = -1
+                if loss == 0:
+                    rsi = 100
+                else:
+                    rs = gain/loss
+                    rsi = 100 - 100 / (1 + rs)
                 prev_close = curr
                 prev_time = bars[i].t.value / 10**9
                 Core.dynamic_rsi[symbol].append(rsi)

@@ -10,13 +10,14 @@ import Util
 import alpaca_trade_api as tradeapi
 
 ACCOUNT_STATUS_ACTIVE = "ACTIVE"
+NANOSEC = 10**9
 
 #core_domain = "https://api.alpaca.markets"
 core_domain = "https://paper-api.alpaca.markets"
 data_domain = "https://data.alpaca.markets"
 
 conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.markets')
-
+freq = 15
 
 @conn.on(r'^AM.*')
 async def on_minute_bars(conn, channel, bar):
@@ -24,7 +25,7 @@ async def on_minute_bars(conn, channel, bar):
     Core.most_recent_price[symbol] = bar.close
 
     epsilon = 30
-    bar_time = bar.end.value / 10**9
+    bar_time = bar.end.value / NANOSEC
     time_range_floor = (60 * 5 - epsilon) + Core.prev_time[symbol]
     time_range_ceil  = (60 * 5 + epsilon) + Core.prev_time[symbol]
     if time_range_floor < bar_time and bar_time < time_range_ceil:
