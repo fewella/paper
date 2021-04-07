@@ -8,6 +8,8 @@ import websockets
 import Util
 
 import alpaca_trade_api as tradeapi
+from alpaca_trade_api.stream import Stream
+from alpaca_trade_api.common import URL
 
 ACCOUNT_STATUS_ACTIVE = "ACTIVE"
 NANOSEC = 10**9
@@ -16,16 +18,15 @@ NANOSEC = 10**9
 core_domain = "https://paper-api.alpaca.markets"
 data_domain = "https://data.alpaca.markets"
 
-conn = tradeapi.StreamConn(data_stream='polygon', base_url='wss://data.alpaca.markets')
+conn = Stream(base_url=URL(core_domain), data_feed='iex')
 freq = 15
 
-@conn.on(r'^AM.*')
-async def on_minute_bars(conn, channel, bar):
+async def on_minute_bars(bar):
     symbol = bar.symbol
     Core.most_recent_price[symbol] = bar.close
 
     epsilon = 30
-    bar_time = bar.end.value / NANOSEC
+    bar_time = bar.timestamp / NANOSEC
     time_range_floor = (60 * 5 - epsilon) + Core.prev_time[symbol]
     time_range_ceil  = (60 * 5 + epsilon) + Core.prev_time[symbol]
     if time_range_floor < bar_time and bar_time < time_range_ceil:
@@ -77,14 +78,23 @@ class Core:
 
     def init_stream(self):
         logging.info("Initializing data streaming via WebSockets...")
-        channels = ['trade_updates'] + Util.get_channels()
         try:
-            conn.run(channels)
+            loop = asyncio.get_event_loop()
+            loop.set_debug(True)
+        except RuntimeError:
+            asyncio.set_event_loop(asyncio.new_event_loop())
+
+        for s in Util.retrieve_hand_picked_symbols():
+            conn.subscribe_bars(on_minute_bars, s)
+        try:
+            conn.run()
         except Exception as e:
-            logging.error("conn.run() error - restarting")
+            logging.error("conn.run() error:")
             logging.error(str(e))
+        finally:
+            logging.info("Attempting restart...")
             time.sleep(3)
-            self.init_stream(channels)
+            self.init_stream()
         
 
     def test_auth(self):
