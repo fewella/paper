@@ -40,7 +40,7 @@ class Platform:
             self.time_period = "1Day"
         #self.time_period_string = self.determine_time_period(self.time_period_minutes)
 
-        self.delta = 60 # seconds to wait between loops TODO this could be related to time_period
+        self.delta = 60 
         self.prospective_buy = []
         
         self.positions = {} # symbol (str) -> Holding
@@ -50,19 +50,13 @@ class Platform:
         self.core = c
         self.brain = b
 
-        self.overbought = 70.0
-        self.oversold   = 30.0
-
-    
-    def should_buy(self, symbol, line=None):
+    def should_buy(self, symbol):
         # TODO EUNICE
-        # rsi_line hold a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
-        
-        rsi_line = []
-        if line == None:
-            rsi_line = Core.dynamic_rsi[symbol]
-        else:
-            rsi_line = line
+        # rsi_line holds a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
+        # IF TRUE, DISPLAY A GRAPH OF RSI AND OF PRICE AND INDICATE WHERE WE BOUGHT mb w a circle?
+        # display the 10 last elements in rsi_line (RSI) and Core.historic_price[symbol] (price)
+        # even if dont have the money to buy, show the opportunity
+        rsi_line = Core.dynamic_rsi[symbol]
 
         epsilon = 0.5 # tolerance for upward or downward movements
         
@@ -73,7 +67,7 @@ class Platform:
             curr = curr_line[i]
             prev = curr_line[i-1]
             if curr > prev + epsilon:
-                # probabily increasing, we dont care
+                # probabily increasing on this interval, so we assume not a good buy
                 return False
         if rsi_line[-2] > rsi_line[-3] and rsi_line[-1] > rsi_line[-2]:
             return True
@@ -82,18 +76,15 @@ class Platform:
 
 
     
-    def should_sell(self, symbol, line=None):
+    def should_sell(self, symbol):
         # TODO EUNICE
-        # rsi_line hold a list of rsi values. Should buy should return true if there is a MAXIMUM at the END of rsi_line
-        rsi_line = []
-        if line == None:
-            rsi_line = Core.dynamic_rsi[symbol]
-        else:
-            rsi_line = line
-        
-        epsilon = 0.6 # slightly higher tolerance
+        # same deal as should_buy: display graph even if don't have the stock to sell
 
-        curr_line = rsi_line[-8:-3]
+        rsi_line = Core.dynamic_rsi[symbol]
+  
+        epsilon = 0.6 # slightly higher tolerance (we want to sell what we're holding asap)
+
+        curr_line = rsi_line[-10:-3]
         for i in range(1, len(curr_line)):
             curr = curr_line[i]
             prev = curr_line[i-1]
@@ -156,7 +147,6 @@ class Platform:
     def sell_all(self, symbol):
         n = self.positions[symbol].qty
         self.core.place_order(symbol, n, side='sell', order_type="limit", time_in_force="gtc")
-        # TODO check if successful
         self.positions[symbol].reset()
 
 
@@ -168,8 +158,8 @@ class Platform:
         else:
             logging.info("Authorization successful")
 
-        # TODO: there are a LOT of magic numbers here - they should be put into globals or class vars.
-        # TODO: this whole code block should be moved to Brain
+        # TODO AJAY: there are a LOT of magic numbers here - they should be put into globals or class vars.
+        # TODO AJAY: this whole code block should be moved to Brain
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
         initial_data = self.core.get_data(self.prospective_buy, self.time_period, limit=time_periods)

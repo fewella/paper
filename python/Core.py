@@ -19,11 +19,9 @@ core_domain = "https://paper-api.alpaca.markets"
 data_domain = "https://data.alpaca.markets"
 
 conn = Stream(base_url=URL(core_domain), data_feed='iex')
-freq = 15
 
 async def on_minute_bars(bar):
     symbol = bar.symbol
-    Core.most_recent_price[symbol] = bar.close
 
     epsilon = 30
     bar_time = bar.timestamp / NANOSEC
@@ -43,8 +41,12 @@ async def on_minute_bars(bar):
         rsi = 100 - 100 / (1 + rs)
 
         Core.prev_close[symbol] = curr
+        Core.most_recent_price[symbol] = bar.close
         Core.prev_time[symbol] = bar_time
         Core.dynamic_rsi[symbol].append(rsi)
+        Core.historic_price[symbol].append(curr)
+        if len(Core.historic_price) > 300:
+            Core.historic_price.pop(0)
         Core.fresh[symbol] = True
         logging.debug("Added to dynmic rsi for " + symbol + ". Recent list: " + str(Core.dynamic_rsi[symbol][-10:]))
     else:
@@ -70,6 +72,8 @@ class Core:
     fresh = {} # symbol (str) -> bool: whether new data is available for analysis
 
     most_recent_price = {} # symbol(str) -> float, most recent price of the given asset
+    historic_price = {} # symbol (str) -> list[float], most recent 
+
 
     def __init__(self):
         self.api = tradeapi.REST(base_url=core_domain)
@@ -173,7 +177,7 @@ class Core:
     
 
     def get_high_volume_symbols(self, initial_list):
-        # TODO (eventually) technically determine good symbols to trade. Currently hardcoded list in Util. 
+        # (eventually) technically determine good symbols to trade. Currently hardcoded list in Util. 
         pass
 
 

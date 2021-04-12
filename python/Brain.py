@@ -100,7 +100,7 @@ class Brain():
         Calculate the On-Balance Volume, giving a symbol, timeframe, and length (in this case, n really represents "how far back are you thinking?")
         SHOULD BE USED TO CONFIRM DECISIONS, NOT DRIVE THEM!
         OBV is a momentum trading indicator based on volume. Looks at trend - how does the market feel? Tries to follow "smart money".
-        This actual number doesn't matter. What *does* matter is how it changes over time (TODO: look at slope). 
+        This actual number doesn't matter. What *does* matter is how it changes over time 
         '''
 
         obv = 0

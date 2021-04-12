@@ -15,7 +15,7 @@ import nest_asyncio
 Driver B)
 No argument run will run the platform and simulation with all defaults.
 
-TODO list:
+wishlist:
     -> could add parameters for time period over which signals are calculated
     -> give preference to certain symbols
 '''
