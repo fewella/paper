@@ -68,11 +68,11 @@ class Platform:
             prev = curr_line[i-1]
             if curr > prev + epsilon:
                 # probabily increasing on this interval, so we assume not a good buy
-                return False
+                return (False, [])
         if rsi_line[-2] > rsi_line[-3] and rsi_line[-1] > rsi_line[-2]:
-            return True
+            return (True, rsi_line[-10:])
         
-        return False
+        return (False, [])
 
 
     
@@ -89,11 +89,11 @@ class Platform:
             curr = curr_line[i]
             prev = curr_line[i-1]
             if curr < prev + epsilon:
-                return False
+                return (False, [])
         if rsi_line[-2] < rsi_line[-3] and rsi_line[-1] < rsi_line[-2]:
-            return True
+            return (True, rsi_line[-10:])
 
-        return False
+        return (False, [])
     
     
     def run(self):
@@ -113,11 +113,17 @@ class Platform:
         while True:
             for symbol in self.prospective_buy:
                 if Core.fresh[symbol]:
-                    if self.should_buy(symbol):
+                    should_buy, buy_list = self.should_buy(symbol)
+                    should_sell, sell_list = self.should_sell(symbol)
+                    if should_buy:
                         logging.info ("Found dip in " + symbol)
                         self.buy_portion(symbol)
-                    elif self.has_position(symbol) and self.should_sell(symbol):
+                        logging.info('buy!')
+                        logging.info(buy_list)
+                    elif self.has_position(symbol) and should_sell:
                         self.sell_all(symbol)
+                        logging.info('sell!')
+                        logging.info(sell_list)
             Core.fresh[symbol] = False
 
             time.sleep(self.delta)
@@ -215,6 +221,7 @@ class Platform:
             Core.prev_time[symbol] = prev_time
             Core.prev_close[symbol] = prev_close
             Core.fresh[symbol] = True
+            Core.historic_price[symbol] = []
 
         Core.clock_start = time.time()
         self.update_buying_power_and_positions()

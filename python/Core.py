@@ -4,6 +4,7 @@ import asyncio
 import logging
 import requests
 import websockets
+import traceback
 
 import Util
 
@@ -95,6 +96,7 @@ class Core:
         except Exception as e:
             logging.error("conn.run() error:")
             logging.error(str(e))
+            traceback.print_exc()
         finally:
             logging.info("Attempting restart...")
             time.sleep(3)
