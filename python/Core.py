@@ -23,11 +23,14 @@ conn = Stream(base_url=URL(core_domain), data_feed='iex')
 
 async def on_minute_bars(bar):
     symbol = bar.symbol
+    mins = 1
 
+    # BIG TODO - TIME (mins) SHOULD NOT BE HARDCODED
+    
     epsilon = 30
     bar_time = bar.timestamp / NANOSEC
-    time_range_floor = (60 * 5 - epsilon) + Core.prev_time[symbol]
-    time_range_ceil  = (60 * 5 + epsilon) + Core.prev_time[symbol]
+    time_range_floor = (60 * mins - epsilon) + Core.prev_time[symbol]
+    time_range_ceil  = (60 * mins + epsilon) + Core.prev_time[symbol]
     if time_range_floor < bar_time and bar_time < time_range_ceil:
         curr = bar.close
         change = curr - Core.prev_close[symbol]
