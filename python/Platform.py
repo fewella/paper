@@ -63,7 +63,6 @@ class Platform:
         
         # look at the past 7 values except for the last two:
         curr_line = rsi_line[-10:-3]
-        print("RSI line for " + symbol + ": " + str(rsi_line[-10:]))
         
         for i in range(1, len(curr_line)):
             curr = curr_line[i]
