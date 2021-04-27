@@ -27,7 +27,7 @@ class Holding:
 
 class Platform:
         
-    def __init__(self, c, b, time_period=5):
+    def __init__(self, c, b, time_period):
         self.time_period_minutes = time_period
         self.time_period = None
         if time_period == 1:
@@ -56,12 +56,14 @@ class Platform:
         # IF TRUE, DISPLAY A GRAPH OF RSI AND OF PRICE AND INDICATE WHERE WE BOUGHT mb w a circle?
         # display the 10 last elements in rsi_line (RSI) and Core.historic_price[symbol] (price)
         # even if dont have the money to buy, show the opportunity
+        print("")
         rsi_line = Core.dynamic_rsi[symbol]
 
         epsilon = 0.5 # tolerance for upward or downward movements
         
         # look at the past 7 values except for the last two:
         curr_line = rsi_line[-10:-3]
+        print("RSI line for " + symbol + ": " + str(rsi_line[-10:]))
         
         for i in range(1, len(curr_line)):
             curr = curr_line[i]

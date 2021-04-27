@@ -64,7 +64,7 @@ if __name__ == "__main__":
         logging.basicConfig(stream=stderr, level=l)
     
     time_period = None
-    minutes = 5 # Default, should probably be coded somewhere magic number bad
+    minutes = 1 # DEFAULT - USE MINUTE BARS
     if args.timeframe:
         try:
             minutes = int(args.timeframe)
@@ -78,6 +78,6 @@ if __name__ == "__main__":
     core = Core()
     brain = Brain(core)
     
-    platform = Platform(core, brain, time_period=minutes)
+    platform = Platform(core, brain, minutes)
     platform.run()
     
