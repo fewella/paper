@@ -178,7 +178,7 @@ class Platform:
         # TODO AJAY: there are a LOT of magic numbers here - they should be put into globals or class vars.
         # TODO AJAY: this whole code block should be moved to Brain
         #self.prospective_buy = Util.retrieve_hand_picked_symbols()
-        self.prospective_buy = Util.retrieve_hand_picked_symbols()
+        self.prospective_buy = Util.retrieve_active_symbols()
 
         initial_data = self.core.get_data(self.prospective_buy, self.time_period, limit=time_periods)
         for symbol in initial_data:

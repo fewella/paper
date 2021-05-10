@@ -92,7 +92,7 @@ class Core:
         except RuntimeError:
             asyncio.set_event_loop(asyncio.new_event_loop())
 
-        for s in Util.retrieve_hand_picked_symbols():
+        for s in Util.retrieve_active_symbols():
             conn.subscribe_bars(on_minute_bars, s)
         try:
             conn.run()
@@ -173,13 +173,26 @@ class Core:
         start: data must come at or after timestamp start (after: data must comes AFTER timestamp after)
         end: data must come at or before timestamp end (until: data must come BEFORE timestamp until)
         '''
-        data = self.data_api.get_barset(symbol, timeframe, limit, start=start, end=end, after=after, until=until)
 
-        if type(symbol) == str:
-            return dict(data)[symbol]
+        list_limit = 100
+        data = {}
+        if type(symbol) == list:
+            for i in range(0, len(symbol), 100):
+                raw = self.data_api.get_barset(symbol[i:i+list_limit], timeframe, limit, start=start, end=end, after=after, until=until)
+                curr = dict(raw)
+                data.update(curr)
+        
+        elif type(symbol) == str:
+            raw = self.data_api.get_barset(symbol, timeframe, limit, start=start, end=end, after=after, until=until)
+            data = dict(raw)[symbol]
+        
         else:
-            return dict(data)
-    
+            logging.error("Symbols in bad format! Exiting...")
+            exit(1)
+        
+        print(data)
+        return data
+
 
     def get_high_volume_symbols(self, initial_list):
         # (eventually) technically determine good symbols to trade. Currently hardcoded list in Util. 

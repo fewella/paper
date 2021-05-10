@@ -3,7 +3,7 @@ import logging
 import urllib.request
 
 import yfinance as yf
-from pprint import pprint
+import numpy as np
 
 def retrieve_all_symbols():
     '''
@@ -39,14 +39,16 @@ def retrieve_active_symbols(n=300, force_fetch=False):
     
     if (not downloaded) or force_fetch:
         all_symbols = retrieve_all_symbols()
-        tickers = yf.Tickers(" ".join(all_symbols))
         volume = {}
-        for s in tickers.tickers:
+        for s in all_symbols:
             try:
-                volume[s] = int(tickers.tickers[s].info["volume"])
+                ticker = yf.Ticker(s)
+                data = ticker.history(period="1mo")
+                volume[s] = np.mean(data["Volume"])
                 print("volume of " + s + " is " + str(volume[s]))
             except:
                 print(":)?")
+                traceback.print_exc()
                 continue
 
         volume = dict(sorted(volume.items(), key=lambda x : x[1]))
