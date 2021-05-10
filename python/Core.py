@@ -92,7 +92,7 @@ class Core:
         except RuntimeError:
             asyncio.set_event_loop(asyncio.new_event_loop())
 
-        for s in Util.retrieve_hand_picked_symbols():
+        for s in Util.retrieve_hand_picked_symbols()
             conn.subscribe_bars(on_minute_bars, s)
         try:
             conn.run()

@@ -7,8 +7,10 @@ import logging
 
 from Core import Core
 from Brain import Brain
-
 import Util
+
+import matplotlib.pyplot as plt
+from datetime import datetime
 
 ORIGINAL_BUYING_POWER = 10000
 
@@ -49,14 +51,23 @@ class Platform:
 
         self.core = c
         self.brain = b
+    
+    def display_graph(self, symbol):
+        rsi_to_display = Core.dynamic_rsi[symbol][-10:]
+        price_to_display = Core.historic_price[symbol][-10:]
+        timestamps = []
+        for i in range(10):
+            curr = datetime.now() - datetime.timedelta(seconds=i)
+            timestamps.append(datetime.now().strftime("%H:%M"))
+        
+        fig, ax = plt.subplots()
+        ax.plot(timestamps, rsi_to_display, label="RSI")
+        ax.plot(timestamps, price_to_display, label="Price")
+        ax.legend(loc = 'upper left')
+
+        plt.show()
 
     def should_buy(self, symbol):
-        # TODO EUNICE
-        # rsi_line holds a list of rsi values. Should buy should return true if there is a MINIMUM at the END of rsi_line
-        # IF TRUE, DISPLAY A GRAPH OF RSI AND OF PRICE AND INDICATE WHERE WE BOUGHT mb w a circle?
-        # display the 10 last elements in rsi_line (RSI) and Core.historic_price[symbol] (price)
-        # even if dont have the money to buy, show the opportunity
-        print("")
         rsi_line = Core.dynamic_rsi[symbol]
 
         epsilon = 0.5 # tolerance for upward or downward movements
@@ -71,6 +82,7 @@ class Platform:
                 # probabily increasing on this interval, so we assume not a good buy
                 return (False, [])
         if rsi_line[-2] > rsi_line[-3] and rsi_line[-1] > rsi_line[-2]:
+            self.display_graph(symbol)
             return (True, rsi_line[-10:])
         
         return (False, [])
@@ -78,9 +90,6 @@ class Platform:
 
     
     def should_sell(self, symbol):
-        # TODO EUNICE
-        # same deal as should_buy: display graph even if don't have the stock to sell
-
         rsi_line = Core.dynamic_rsi[symbol]
   
         epsilon = 0.6 # slightly higher tolerance (we want to sell what we're holding asap)
@@ -92,6 +101,7 @@ class Platform:
             if curr < prev + epsilon:
                 return (False, [])
         if rsi_line[-2] < rsi_line[-3] and rsi_line[-1] < rsi_line[-2]:
+            self.display_graph(symbol)
             return (True, rsi_line[-10:])
 
         return (False, [])
@@ -167,11 +177,13 @@ class Platform:
 
         # TODO AJAY: there are a LOT of magic numbers here - they should be put into globals or class vars.
         # TODO AJAY: this whole code block should be moved to Brain
+        #self.prospective_buy = Util.retrieve_hand_picked_symbols()
         self.prospective_buy = Util.retrieve_hand_picked_symbols()
 
         initial_data = self.core.get_data(self.prospective_buy, self.time_period, limit=time_periods)
         for symbol in initial_data:
             Core.dynamic_rsi[symbol] = []
+            Core.historic_price[symbol] = []
 
             bars = initial_data[symbol]
             # Calculate the first RSI
@@ -216,13 +228,14 @@ class Platform:
                 prev_time = bars[i].t.value / 10**9
                 Core.dynamic_rsi[symbol].append(rsi)
                 Core.most_recent_price[symbol] = curr
+                Core.historic_price[symbol].append(curr)
             
             Core.prev_gain[symbol] = gain
             Core.prev_loss[symbol] = loss
             Core.prev_time[symbol] = prev_time
             Core.prev_close[symbol] = prev_close
             Core.fresh[symbol] = True
-            Core.historic_price[symbol] = []
+            
 
         Core.clock_start = time.time()
         self.update_buying_power_and_positions()
