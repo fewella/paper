@@ -10,7 +10,7 @@ from Brain import Brain
 import Util
 
 import matplotlib.pyplot as plt
-from datetime import datetime
+import datetime
 
 ORIGINAL_BUYING_POWER = 10000
 
@@ -57,8 +57,8 @@ class Platform:
         price_to_display = Core.historic_price[symbol][-10:]
         timestamps = []
         for i in range(10):
-            curr = datetime.now() - datetime.timedelta(seconds=i)
-            timestamps.append(datetime.now().strftime("%H:%M"))
+            curr = datetime.datetime.now() - datetime.timedelta(seconds=i)
+            timestamps.append(datetime.datetime.now().strftime("%H:%M"))
         
         fig, ax = plt.subplots()
         ax.plot(timestamps, rsi_to_display, label="RSI")
