@@ -173,11 +173,10 @@ class Core:
         start: data must come at or after timestamp start (after: data must comes AFTER timestamp after)
         end: data must come at or before timestamp end (until: data must come BEFORE timestamp until)
         '''
-
-        list_limit = 100
+        list_limit = 50
         data = {}
         if type(symbol) == list:
-            for i in range(0, len(symbol), 100):
+            for i in range(0, len(symbol), list_limit):
                 raw = self.data_api.get_barset(symbol[i:i+list_limit], timeframe, limit, start=start, end=end, after=after, until=until)
                 curr = dict(raw)
                 data.update(curr)
@@ -189,8 +188,7 @@ class Core:
         else:
             logging.error("Symbols in bad format! Exiting...")
             exit(1)
-        
-        print(data)
+            
         return data
 
 

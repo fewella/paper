@@ -28,7 +28,7 @@ def retrieve_active_symbols(n=300, force_fetch=False):
     try:
         f = open(symbols_filename, "r")
         for line in f:
-            active_symbols.append(line)
+            active_symbols.append(line.rstrip("\n"))
         f.close()
     except FileNotFoundError as e:
         downloaded = False
