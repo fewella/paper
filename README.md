@@ -23,7 +23,44 @@ For the bot to retrieve data from the Alpaca API, you must set the `APCA_API_KEY
 
 *Note: We highly recommend you use a paper account (that simulates trades instead of placing real orders) while you get started!*
 
-### Step 4. 
+### Step 4. Run the bot
+
+Navigate inside `\python` and run: 
+
+```
+python main.py
+```
+
+In addition, you can pass in the following arguments: 
+
+* Run the custom function and exit - for testing purpose
+
+```
+-c, --custom
+```
+
+* Log debug messages
+
+```
+-d, --debug
+```
+
+* Suppresses all output except critical, overrides debug
+
+```
+-q, --quiet
+```
+
+* Store all output in the specified file
+
+```
+-o, --output
+```
+
+* Specify the timeframe over which to calculate signals and make trades, in MINUTES - [1, 1440]
+
+```
+-t, --timeframe
+```
 
 ## How it works
-
