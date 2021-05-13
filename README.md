@@ -25,10 +25,10 @@ For the bot to retrieve data from the Alpaca API, you must set the `APCA_API_KEY
 
 ### Step 4. Run the bot
 
-Navigate inside `\python` and run: 
+Navigate inside `python/` and run: 
 
 ```
-python main.py
+python3 main.py
 ```
 
 In addition, you can pass in the following arguments: 
