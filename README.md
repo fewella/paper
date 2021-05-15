@@ -63,6 +63,10 @@ In addition, you can pass in the following arguments:
 -t, --timeframe
 ```
 
+The bot will identify optimal buying/selling points, and generate graphs to display the detected buying/selling points. The following is an example graph: 
+
+[Image to insert]
+
 ## How it works
 
 Tommy is split up into three main pieces:
