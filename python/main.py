@@ -1,42 +1,26 @@
 from sys import stderr
 
-from Core import Core
-from Brain import Brain
-from Platform import Platform
+import Core
+import Brain
+import Platform
+import Parameters
 
 import Util
 
 import logging
-import asyncio
 import argparse
-import nest_asyncio
-
-'''
-Driver B)
-No argument run will run the platform and simulation with all defaults.
-
-wishlist:
-    -> could add parameters for time period over which signals are calculated
-    -> give preference to certain symbols
-'''
 
 
 def custom():
-    ''' This is strictly for testing, invoke with -c, --custom'''
+    ''' Invoke with -c, --custom '''
     
-    c = Core()
-    b = Brain(c)
+    print(Core.get_data(["AAPL", "GOOG"], "day", limit=20))
 
-    print(c.get_data(["AAPL", "GOOG"], "day", limit=20))
-    
-    rsi = b.RSI("ROKU", timeframe="15Min")
+    rsi = Brain.RSI("ROKU", timeframe="15Min")
     print(rsi)
 
 
 if __name__ == "__main__":
-
-    nest_asyncio.apply()
-    
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--custom", help="run the custom function and exit - for testing",
                                     action="store_true")
@@ -62,22 +46,19 @@ if __name__ == "__main__":
         logging.basicConfig(filename=args.output, level=l)
     else: 
         logging.basicConfig(stream=stderr, level=l)
-    
-    time_period = None
-    minutes = 1 # DEFAULT - USE MINUTE BARS
+
+    bar_duration = 1 # Default - use minute bars
     if args.timeframe:
         try:
-            minutes = int(args.timeframe)
+            bar_duration = int(args.timeframe)
         except:
             logging.critical("Please enter an integer for minutes. Exiting....")
             exit()
-        if minutes < 1 or minutes > 1440:
+        if bar_duration < 1 or bar_duration > 1440:
             logging.critical("Please enter a number of minutes between 1 and 1440. Exiting....")
             exit()
-    
-    core = Core()
-    brain = Brain(core)
-    
-    platform = Platform(core, brain, minutes)
-    platform.run()
-    
+
+
+    Parameters.init(bar_duration)
+    Platform.run()
+
